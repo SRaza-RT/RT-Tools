@@ -1,0 +1,2977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0d12">
+<title>MICU Clinical Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ════════════════════════════════════════════════════
+   DESIGN SYSTEM
+════════════════════════════════════════════════════ */
+:root {
+  --bg:        #0a0d12;
+  --bg2:       #0f1319;
+  --bg3:       #151b24;
+  --surface:   #1a2230;
+  --surface2:  #202b3a;
+  --border:    #253040;
+  --border2:   #2e3d52;
+  --text:      #e8eef6;
+  --text2:     #8fa3bc;
+  --text3:     #4a6280;
+
+  --cyan:      #38bdf8;
+  --cyan-dim:  rgba(56,189,248,0.12);
+  --teal:      #2dd4bf;
+  --teal-dim:  rgba(45,212,191,0.12);
+  --amber:     #fbbf24;
+  --amber-dim: rgba(251,191,36,0.12);
+  --red:       #f87171;
+  --red-dim:   rgba(248,113,113,0.12);
+  --green:     #4ade80;
+  --green-dim: rgba(74,222,128,0.12);
+  --violet:    #a78bfa;
+  --violet-dim:rgba(167,139,250,0.12);
+
+  --nav-h:     64px;
+  --safe-b:    env(safe-area-inset-bottom, 0px);
+  --radius:    12px;
+  --radius-sm: 8px;
+
+  font-size: 16px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+html { height:100%; -webkit-text-size-adjust:100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  cursor: pointer;
+}
+
+/* ── LAYOUT ── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  height: 100vh;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  flex-shrink: 0;
+  height: 56px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.topbar-badge {
+  background: var(--cyan);
+  color: var(--bg);
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -.01em;
+}
+.topbar-sub {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  margin-left: auto;
+  letter-spacing: .04em;
+}
+
+/* ── CONTENT AREA ── */
+.content-area {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Module panels */
+.module-panel {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity .22s ease, transform .22s ease;
+  padding-bottom: calc(var(--nav-h) + var(--safe-b) + 16px);
+}
+.module-panel.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+/* tool panels pre-rendered */
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  flex-shrink: 0;
+  height: calc(var(--nav-h) + var(--safe-b));
+  padding-bottom: var(--safe-b);
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  z-index: 100;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  padding: 8px 4px;
+  transition: color .15s;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  user-select: none;
+}
+.nav-item.active { color: var(--cyan); }
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 2px;
+  background: var(--cyan);
+  border-radius: 0 0 2px 2px;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.nav-item.active::before { opacity: 1; }
+.nav-icon {
+  font-size: 20px;
+  line-height: 1;
+  transition: transform .15s;
+}
+.nav-item.active .nav-icon { transform: translateY(-1px); }
+.nav-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  letter-spacing: .06em;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* ════════════════════════════════════════════════════
+   HOME SCREEN
+════════════════════════════════════════════════════ */
+.home-screen { padding: 20px 16px 8px; }
+.home-header { margin-bottom: 24px; }
+.home-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -.03em;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.home-title span { color: var(--cyan); }
+.home-sub {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* Tool cards grid */
+.tools-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.tool-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: all .18s ease;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.tool-card:active { transform: scale(.97); background: var(--surface2); }
+.tool-card .tc-icon { font-size: 22px; margin-bottom: 10px; line-height: 1; display: block; }
+.tool-card .tc-name {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.tool-card .tc-desc {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: .04em;
+  line-height: 1.5;
+}
+.tool-card .tc-arrow {
+  position: absolute;
+  bottom: 12px; right: 14px;
+  font-size: 14px;
+  color: var(--text3);
+  transition: transform .15s, color .15s;
+}
+.tool-card:active .tc-arrow { transform: translateX(3px); }
+
+/* Card accent colors */
+.card-cyan::before  { background: var(--cyan); }
+.card-teal::before  { background: var(--teal); }
+.card-amber::before { background: var(--amber); }
+.card-red::before   { background: var(--red); }
+.card-violet::before{ background: var(--violet); }
+.card-green::before { background: var(--green); }
+
+/* Info strip */
+.info-strip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.info-icon { font-size: 20px; flex-shrink: 0; }
+.info-text { font-size: 12px; color: var(--text2); line-height: 1.55; }
+.info-text strong { color: var(--text); font-weight: 600; }
+
+/* ════════════════════════════════════════════════════
+   ABG / VBG INTERPRETER
+════════════════════════════════════════════════════ */
+.abg-screen { padding: 16px; }
+.screen-header { margin-bottom: 20px; }
+.screen-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  margin-bottom: 4px;
+}
+.screen-sub {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .06em;
+}
+
+/* Input card */
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.input-card-title {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 14px;
+}
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.input-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.input-row:last-child { margin-bottom: 0; }
+.input-group { display: flex; flex-direction: column; gap: 5px; }
+.input-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: .1em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.input-label .unit {
+  color: var(--text3);
+  font-size: 8px;
+}
+.input-label .opt-badge {
+  font-size: 7.5px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: var(--surface2);
+  color: var(--text3);
+  border: 1px solid var(--border2);
+  letter-spacing: .06em;
+}
+.abg-input {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: 'Fira Code', monospace;
+  font-size: 16px;
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  transition: border-color .15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.abg-input:focus { border-color: var(--cyan); }
+.abg-input::placeholder { color: var(--text3); font-size: 13px; }
+
+/* Source toggle */
+.source-toggle {
+  display: flex;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 14px;
+}
+.source-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+  cursor: pointer;
+  color: var(--text3);
+  background: transparent;
+  transition: all .15s;
+}
+.source-btn.active { background: var(--surface); color: var(--cyan); }
+
+/* VBG disclaimer */
+.vbg-disclaimer {
+  background: var(--amber-dim);
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--amber);
+  line-height: 1.55;
+  margin-bottom: 14px;
+  display: none;
+}
+.vbg-disclaimer.show { display: block; }
+
+/* Interpret button */
+.interpret-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--cyan);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  cursor: pointer;
+  transition: all .15s;
+  margin-bottom: 16px;
+}
+.interpret-btn:active { opacity: .85; transform: scale(.99); }
+
+/* Results */
+.abg-results { display: none; }
+.abg-results.show { display: flex; flex-direction: column; gap: 10px; }
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.result-header {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.result-step {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.result-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+.result-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--text2);
+}
+.result-body { padding: 12px 14px; }
+.result-finding {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.result-detail {
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.65;
+}
+.result-formula {
+  font-family: 'Fira Code', monospace;
+  font-size: 10.5px;
+  color: var(--text3);
+  background: var(--bg3);
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* Result status colors */
+.status-normal  { color: var(--green); }
+.status-warn    { color: var(--amber); }
+.status-alert   { color: var(--red); }
+.status-info    { color: var(--cyan); }
+
+.step-normal  { background: var(--green-dim);  color: var(--green); }
+.step-warn    { background: var(--amber-dim);  color: var(--amber); }
+.step-alert   { background: var(--red-dim);    color: var(--red); }
+.step-info    { background: var(--cyan-dim);   color: var(--cyan); }
+
+/* Reset */
+.reset-btn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text3);
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  cursor: pointer;
+  transition: all .15s;
+  margin-top: 4px;
+}
+.reset-btn:active { border-color: var(--red); color: var(--red); }
+
+/* ════════════════════════════════════════════════════
+   V500 MODE DECISION TREE
+════════════════════════════════════════════════════ */
+.tree-screen { padding: 16px; }
+
+.tree-progress-bar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.tree-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--teal));
+  border-radius: 2px;
+  transition: width .4s ease;
+}
+
+.tree-node { display: none; }
+.tree-node.active { display: flex; flex-direction: column; gap: 12px; animation: fadeSlide .25s ease; }
+
+@keyframes fadeSlide {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.tree-question-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+}
+.tree-q-step {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.tree-q-text {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -.01em;
+  margin-bottom: 6px;
+}
+.tree-q-context {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+.tree-options { display: flex; flex-direction: column; gap: 8px; }
+.tree-option {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tree-option:active { background: var(--surface2); border-color: var(--cyan); transform: scale(.99); }
+.tree-option .opt-icon { font-size: 18px; flex-shrink: 0; }
+.tree-option .opt-text { flex: 1; }
+.tree-option .opt-label { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.tree-option .opt-sub { font-size: 11px; color: var(--text2); line-height: 1.5; }
+.tree-option .opt-arrow { color: var(--text3); font-size: 14px; flex-shrink: 0; }
+
+.tree-back-btn {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+.tree-back-btn:active { color: var(--text2); }
+
+/* Recommendation card */
+.rec-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.rec-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rec-icon { font-size: 22px; }
+.rec-mode-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: .12em;
+  margin-bottom: 3px;
+}
+.rec-mode-name {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.rec-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.rec-section-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 8.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 5px;
+}
+.rec-rationale { font-size: 13.5px; color: var(--text2); line-height: 1.7; }
+.rec-settings { display: flex; flex-direction: column; gap: 6px; }
+.rec-setting {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.rec-setting-key {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  color: var(--cyan);
+  min-width: 100px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.rec-setting-val { color: var(--text2); }
+.rec-caveat {
+  background: var(--amber-dim);
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--amber);
+  line-height: 1.6;
+}
+.rec-caveat-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: .8;
+}
+.rec-restart {
+  width: 100%;
+  padding: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  margin-top: 4px;
+}
+.rec-restart:active { border-color: var(--cyan); color: var(--cyan); }
+
+/* Path breadcrumb */
+.tree-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.bc-item {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  padding: 2px 7px;
+  background: var(--surface2);
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+.bc-arrow { font-size: 9px; color: var(--text3); align-self: center; }
+
+/* ════════════════════════════════════════════════════
+   DESKTOP OVERRIDES
+════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+  .tools-grid { grid-template-columns: repeat(3, 1fr); max-width: 480px; }
+  .home-title { font-size: 32px; }
+  .abg-screen, .tree-screen, .home-screen { max-width: 640px; margin: 0 auto; }
+  .bottom-nav { justify-content: center; }
+  .nav-item { max-width: 120px; }
+  .input-row { grid-template-columns: repeat(3, 1fr); }
+  .input-row.three { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style id="style-checklist">
+  :root {
+    --bg: #0a0e14;
+    --surface: #0f1520;
+    --surface2: #141c2a;
+    --border: #1e2d42;
+    --border-bright: #2a3f5a;
+    --text-primary: #e2eaf5;
+    --text-secondary: #7a92b0;
+    --text-muted: #3d5270;
+    --accent-cyan: #00d4ff;
+    --accent-teal: #00b896;
+    --accent-amber: #f5a623;
+    --accent-red: #ff4d6a;
+    --accent-blue: #4d9fff;
+    --novice: #1a3a2a;
+    --novice-border: #00b896;
+    --novice-text: #7fffd4;
+    --expert: #1a2a3a;
+    --expert-border: #4d9fff;
+    --expert-text: #add8ff;
+    --checked-bg: #0a1f14;
+    --section-heights: auto;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    backdrop-filter: blur(12px);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-badge {
+    background: var(--accent-cyan);
+    color: var(--bg);
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    padding: 4px 10px;
+    border-radius: 3px;
+  }
+
+  .header-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* MODE TOGGLE */
+  .mode-toggle {
+    display: flex;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px;
+    gap: 3px;
+  }
+
+  .mode-btn {
+    padding: 5px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--text-secondary);
+    background: transparent;
+  }
+
+  .mode-btn.active[data-mode="novice"] {
+    background: var(--novice-border);
+    color: #000;
+  }
+
+  .mode-btn.active[data-mode="expert"] {
+    background: var(--expert-border);
+    color: #000;
+  }
+
+  .progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .progress-track {
+    width: 120px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-teal), var(--accent-cyan));
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  .progress-count {
+    font-size: 11px;
+    color: var(--accent-cyan);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* MAIN LAYOUT */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* HERO */
+  .hero {
+    margin-bottom: 36px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .hero h1 span {
+    color: var(--accent-cyan);
+  }
+
+  .hero-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-amber);
+  }
+
+  /* DOMAIN NAV */
+  .domain-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .domain-nav::-webkit-scrollbar { display: none; }
+
+  .domain-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    color: var(--text-secondary);
+    background: var(--surface);
+    text-decoration: none;
+  }
+
+  .domain-pill:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+
+  .domain-pill .pill-num {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .domain-pill .pill-done {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-teal);
+    display: none;
+  }
+
+  .domain-pill.completed .pill-done { display: block; }
+
+  /* DOMAIN SECTIONS */
+  .domain-section {
+    margin-bottom: 28px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+  }
+
+  .domain-section:hover {
+    border-color: var(--border-bright);
+  }
+
+  .domain-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--surface);
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .domain-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .domain-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    min-width: 24px;
+  }
+
+  .domain-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .domain-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .domain-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .domain-progress-mini {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .domain-toggle-icon {
+    color: var(--text-muted);
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
+
+  .domain-section.collapsed .domain-toggle-icon {
+    transform: rotate(-90deg);
+  }
+
+  .domain-body {
+    background: var(--surface2);
+  }
+
+  .domain-section.collapsed .domain-body {
+    display: none;
+  }
+
+  /* V500 DATA STRIP */
+  .v500-strip {
+    padding: 12px 20px;
+    background: #0c1420;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .v500-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--accent-amber);
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+
+  .v500-param {
+    font-size: 10px;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+  }
+
+  /* CHECKLIST ITEMS */
+  .checklist {
+    padding: 8px 0;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s ease;
+  }
+
+  .check-item:last-child {
+    border-bottom: none;
+  }
+
+  .check-item.checked {
+    background: var(--checked-bg);
+  }
+
+  .check-item.checked .check-text {
+    color: var(--text-muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-muted);
+  }
+
+  .check-col {
+    padding: 14px 16px 14px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    flex: 1;
+    cursor: pointer;
+  }
+
+  .custom-check {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--border-bright);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+
+  .check-item.checked .custom-check {
+    background: var(--accent-teal);
+    border-color: var(--accent-teal);
+  }
+
+  .custom-check::after {
+    content: '';
+    display: none;
+    width: 4px;
+    height: 7px;
+    border: 1.5px solid #000;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+
+  .check-item.checked .custom-check::after {
+    display: block;
+  }
+
+  .check-content {
+    flex: 1;
+  }
+
+  .check-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  .check-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+  }
+
+  .flag-badge {
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+    text-transform: uppercase;
+  }
+
+  .flag-red { background: rgba(255,77,106,0.15); color: var(--accent-red); border: 1px solid rgba(255,77,106,0.3); }
+  .flag-amber { background: rgba(245,166,35,0.12); color: var(--accent-amber); border: 1px solid rgba(245,166,35,0.25); }
+  .flag-cyan { background: rgba(0,212,255,0.1); color: var(--accent-cyan); border: 1px solid rgba(0,212,255,0.2); }
+
+  /* INSIGHT PANELS */
+  .insight-panel {
+    margin: 0 20px 14px;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.65;
+    letter-spacing: 0.02em;
+  }
+
+  .insight-panel.novice-panel {
+    background: var(--novice);
+    border: 1px solid rgba(0,184,150,0.3);
+    color: var(--novice-text);
+    display: none;
+  }
+
+  .insight-panel.expert-panel {
+    background: var(--expert);
+    border: 1px solid rgba(77,159,255,0.3);
+    color: var(--expert-text);
+    display: none;
+  }
+
+  .insight-panel.show { display: block; }
+
+  .insight-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+
+  .insight-panel.novice-panel .insight-label { color: var(--novice-border); }
+  .insight-panel.expert-panel .insight-label { color: var(--expert-border); }
+
+  /* INTERPRET GATES */
+  .interpret-gate {
+    margin: 0 20px 16px;
+    padding: 10px 14px;
+    border-left: 2px solid var(--accent-amber);
+    background: rgba(245,166,35,0.05);
+    border-radius: 0 4px 4px 0;
+    font-size: 11px;
+    color: var(--accent-amber);
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+  }
+
+  .interpret-gate .gate-label {
+    font-weight: 500;
+    margin-bottom: 3px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  /* RESET / ACTIONS */
+  .footer-actions {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .action-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: all 0.15s ease;
+  }
+
+  .action-btn.reset {
+    background: var(--surface);
+    color: var(--text-secondary);
+  }
+
+  .action-btn.reset:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+
+  .action-btn.complete {
+    background: var(--accent-teal);
+    color: #000;
+    border-color: var(--accent-teal);
+    font-weight: 500;
+  }
+
+  .action-btn.complete:hover {
+    background: #00d4b0;
+  }
+
+  /* COMPLETION BANNER */
+  .completion-banner {
+    display: none;
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #0a1f14, #0d2030);
+    border: 1px solid var(--accent-teal);
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-teal);
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  .completion-banner.show { display: block; }
+
+  /* SEPARATOR LABEL */
+  .sep-label {
+    padding: 8px 20px;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 22px; }
+    .header-title { display: none; }
+    .progress-track { width: 70px; }
+    .main { padding: 20px 14px 80px; }
+    .footer-actions { bottom: 16px; right: 14px; }
+  }
+</style>
+
+
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <span class="topbar-badge">MICU</span>
+    <span class="topbar-title">Clinical Tools</span>
+    <span class="topbar-sub">V500 · Hartford HealthCare</span>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-area">
+
+    <!-- ── HOME ── -->
+    <div class="module-panel active" id="panel-home">
+      <div class="home-screen">
+        <div class="home-header">
+          <div class="home-title">MICU<br><span>Clinical Tools</span></div>
+          <div class="home-sub">Dräger V500 · Respiratory Therapy · ICU Staff</div>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card card-cyan" onclick="goTo('checklist')">
+            <div>
+              <div class="tc-icon">⊞</div>
+              <div class="tc-name">Shift Assessment</div>
+              <div class="tc-desc">V500 ventilator checklist &amp; mechanics</div>
+            </div>
+            <span class="tc-arrow">→</span>
+          </div>
+          <div class="tool-card card-red" onclick="goTo('abg')">
+            <div>
+              <div class="tc-icon">⬡</div>
+              <div class="tc-name">ABG / VBG</div>
+              <div class="tc-desc">Stepwise interpretation · acid-base</div>
+            </div>
+            <span class="tc-arrow">→</span>
+          </div>
+          <div class="tool-card card-violet" onclick="goTo('tree')">
+            <div>
+              <div class="tc-icon">⬣</div>
+              <div class="tc-name">Mode Selector</div>
+              <div class="tc-desc">V500 guided mode decision tree</div>
+            </div>
+            <span class="tc-arrow">→</span>
+          </div>
+        </div>
+
+        <div class="info-strip">
+          <div class="info-icon">ℹ</div>
+          <div class="info-text">
+            <strong>Foundation / Advanced</strong> tiers available in the Shift Assessment checklist. All tools work offline once loaded.
+          </div>
+        </div>
+      </div>
+    </div>
+
+        <!-- ── CHECKLIST (pre-rendered) ── -->
+    <div class="module-panel" id="panel-checklist" style="padding:0;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      <header class="header">
+  <div class="header-left">
+    <span class="logo-badge">V500</span>
+    <span class="header-title">MICU Ventilator Assessment</span>
+  </div>
+  <div class="header-right">
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="novice" onclick="cl_setMode('novice')">FOUNDATION</button>
+      <button class="mode-btn" data-mode="expert" onclick="cl_setMode('expert')">ADVANCED</button>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <span class="progress-count" id="progressCount">0 / 0</span>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="hero">
+    <h1>Shift Assessment<br><span>Workflow</span></h1>
+    <div class="hero-sub">
+      <span class="hero-tag">Dräger V500 · MICU</span>
+      <span class="hero-tag">Ongoing Assessment &amp; Adjustment</span>
+      <span class="hero-tag">Patient-Ventilator Mechanics</span>
+    </div>
+  </div>
+
+  <div id="completionBanner" class="completion-banner">
+    ✓ Assessment Complete — Document findings and notify provider of flagged items
+  </div>
+
+  <nav class="domain-nav" id="domainNav">
+  <a class="domain-pill" href="#d1"><span class="pill-num">01</span>Airway &amp; Circuit<span class="pill-done"></span></a>
+  <a class="domain-pill" href="#d2"><span class="pill-num">02</span>Ventilation<span class="pill-done"></span></a>
+  <a class="domain-pill" href="#d3"><span class="pill-num">03</span>Oxygenation<span class="pill-done"></span></a>
+  <a class="domain-pill" href="#d4"><span class="pill-num">04</span>Synchrony<span class="pill-done"></span></a>
+  <a class="domain-pill" href="#d5"><span class="pill-num">05</span>Mechanics<span class="pill-done"></span></a>
+  <a class="domain-pill" href="#d6"><span class="pill-num">06</span>Alarms &amp; Settings<span class="pill-done"></span></a>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════
+       DOMAIN 1: PATIENT-VENTILATOR SYNCHRONY
+  ════════════════════════════════════════════════════ -->
+  
+
+  <section class="domain-section" id="d1">
+    <div class="domain-header" onclick="cl_toggleDomain('d1')">
+      <div class="domain-header-left">
+        <span class="domain-num">01</span>
+        <span class="domain-icon">—</span>
+        <span class="domain-title" style="color:#f5a623">Airway &amp; Circuit</span>
+      </div>
+      <div class="domain-header-right">
+        <span class="domain-progress-mini" id="prog-d1">0 / 5</span>
+        <span class="domain-toggle-icon">▼</span>
+      </div>
+    </div>
+    <div class="domain-body">
+      <div class="v500-strip">
+        <span class="v500-label">V500 Display →</span>
+        <span class="v500-param">Ppeak trend</span>
+        <span class="v500-param">VTi − VTe differential</span>
+        <span class="v500-param">Leak compensation status</span>
+        <span class="v500-param">Circuit disconnect alarm active</span>
+      </div>
+
+      <div class="checklist" id="cl-d5">
+
+        <div class="check-item" data-domain="d1">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Verify ETT/trach position — tube depth at lip, bilateral breath sounds, recent CXR correlation</div>
+              <div class="check-sub">ETT tip target: 3–5 cm above carina (typically 21–23 cm at lip in adults). Unilateral breath sounds = presumptive right main-stem until proven otherwise.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d1">
+          <div class="insight-label">Foundation</div>
+          An ETT advanced too far will preferentially enter the right main-stem bronchus (more vertical, shorter takeoff from carina) — this causes right lung overventilation/overdistension and left lung atelectasis. Clinically: decreased left breath sounds, rising Ppeak, worsening compliance (only right lung being ventilated), possible left-sided opacity on CXR. This is immediately correctable by pulling the ETT back 1–2 cm and reassessing. Never assume tube position is stable — neck flexion moves the tube 1–2 cm toward the carina; neck extension moves it away. Patient repositioning (prone, HOB changes) can shift tube depth.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d1">
+          <div class="insight-label">Advanced</div>
+          In the post-prone patient, tube migration toward the carina during turning is common and often underappreciated — the combination of neck flexion during face-down positioning and gravity-induced tube advancement can produce a subtle right main-stem intubation that persists after return to supine. After every prone-to-supine turn, re-auscultate and document tube position. In patients with tracheal abnormalities (post-surgical tracheal stenosis, tracheomalacia, previous tracheotomy) or dynamic airway collapse (severe COPD with expiratory central airway collapse), standard depth assumptions do not apply — individualize using bronchoscopic confirmation.
+        </div>
+
+        <div class="check-item" data-domain="d1">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Assess ETT cuff pressure — maintain 20–30 cmH₂O (or 25–35 for high-volume cuffs) <span class="flag-badge flag-amber">VAP Risk</span></div>
+              <div class="check-sub">Under-inflation → aspiration of subglottic secretions. Over-inflation → tracheal ischemia/necrosis. Measure with manometer, not tactile assessment.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d1">
+          <div class="insight-label">Foundation</div>
+          The ETT cuff seals the trachea to prevent aspiration of subglottic secretions and to direct ventilator flow into the lungs. Cuff pressure below 20 cmH₂O is insufficient to prevent micro-aspiration — a primary driver of ventilator-associated pneumonia (VAP). Pressure above 30 cmH₂O (or 35 for some cuffs) compresses tracheal mucosal capillaries (perfusion pressure ~30 cmH₂O) → ischemia → tracheal stenosis or tracheomalacia over time. Tactile assessment of pilot balloon is unreliable — it does not correlate with actual cuff pressure. Use a manometer. This is a preventable complication that RT is uniquely positioned to catch every shift.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d1">
+          <div class="insight-label">Advanced</div>
+          In patients with tracheomalacia (COPD, prolonged intubation, corticosteroid use), cuff pressure may need to be higher than standard to prevent dynamic collapse of the tracheal wall against the tube during exhalation — but this must be balanced against mucosal injury. Continuous cuff pressure monitoring systems exist and outperform intermittent manual checks for maintaining target range. In patients with a subglottic suction ETT (e.g., Mallinckrodt EVAC), verify that subglottic suction is patent and applied per protocol — this is VAP bundle compliance independent of cuff pressure. Air leakage despite adequate cuff pressure in a cuffed trach suggests cuff herniation over the fenestration or cuff rupture — requires immediate evaluation.
+        </div>
+
+        <div class="check-item" data-domain="d1">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Inspect circuit — condensate, HME vs. heated humidification, filter status, connections</div>
+              <div class="check-sub">Water in circuit → auto-triggering, increased resistance, infection risk. HME contraindicated: thick secretions, high VE &gt;10 L/min, hemoptysis, leak &gt;20%.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d1">
+          <div class="insight-label">Foundation</div>
+          Ventilator circuits require active or passive humidification because the upper airway (bypassed by the ETT) normally warms and humidifies inspired gas. Without humidification, dry gas damages airway mucosa, thickens secretions, and impairs mucociliary clearance. HME (heat-moisture exchanger) filters are passive — they work by trapping heat and moisture from exhaled gas and returning it on the next breath. They're simple but have limits: high minute volumes exhaust their capacity, and significant leaks prevent moisture recapture. Active heated humidification (Dräger compatible Fisher & Paykel systems) is preferred for patients with copious or viscous secretions, high VE, or lung-protective strategies requiring maximal secretion management.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d1">
+          <div class="insight-label">Advanced</div>
+          Condensate in the ventilator circuit is a frequently overlooked cause of auto-triggering, particularly with flow-triggered systems. Water pooling in the expiratory limb creates intermittent flow perturbations that the V500's flow sensor interprets as patient effort — resulting in delivered breaths with no respiratory drive. If you see unexplained tachypnea on the vent (fTotal &gt; fSet with no patient effort visible on clinical exam), inspect the circuit before adjusting trigger sensitivity. Also: circuit compliance — longer circuits with higher compliance add to the system's total compliance, which the V500 compensates for during circuit calibration. If the circuit is changed without re-running the compliance test, VT delivery accuracy may be affected.
+        </div>
+
+        <div class="check-item" data-domain="d1">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Check VTi vs. VTe differential — significant leak (&gt;10–15%) warrants investigation <span class="flag-badge flag-cyan">V500 Specific</span></div>
+              <div class="check-sub">V500 displays both inspiratory and exhaled VT. Large VTi-VTe gap = cuff leak, circuit disconnect, bronchopleural fistula, or trach fenestration.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d1">
+          <div class="insight-label">Foundation</div>
+          The V500 measures flow at both inspiratory and expiratory sensors. In a closed system, what goes in should equal what comes out (accounting for small gas exchange differences). A persistent VTi &gt; VTe indicates gas is leaving the system somewhere other than the expiratory limb. Common causes: cuff leak (gas escaping around the cuff into the upper airway — you can sometimes hear it or the patient can vocalize), bronchopleural fistula (gas escaping into the pleural space), or circuit disconnection. A cuff leak that suddenly develops mid-shift should prompt immediate cuff manometry and reassessment.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d1">
+          <div class="insight-label">Advanced</div>
+          A new cuff leak in a patient with recent forceful coughing, high Ppeak, or repositioning suggests cuff herniation or rupture — this needs urgent airway re-evaluation, not just cuff reinflation. In patients with bronchopleural fistula (BPF), the VTi-VTe gap can be massive. Management: PEEP reduction to minimize fistula flow, consider independent lung ventilation via double-lumen ETT or bronchial blocker in severe cases, and High-Frequency Oscillatory Ventilation as an option to reduce mean tidal flow through the fistula. The V500's leak compensation feature can maintain delivered VT in the presence of small leaks — understand whether this is enabled, as it will mask the apparent VTi-VTe gap.
+        </div>
+
+        <div class="check-item" data-domain="d1">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Suction assessment — secretion quantity, quality, frequency of need; airway patency confirmed</div>
+              <div class="check-sub">Secretion color/consistency: document. Frequency of suctioning need &gt;q1–2h suggests inadequate humidification or active pulmonary infection. Confirm passed suction catheter to carina.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d1">
+          <div class="insight-label">Foundation</div>
+          Suctioning should be based on clinical indication (audible secretions, increased Raw, decreased SpO₂, visible secretions), not on a fixed schedule. Over-suctioning causes tracheal mucosal damage, oxygen desaturation (especially in ARDS), and cardiovascular stress. Under-suctioning allows secretion accumulation → ETT obstruction → increased resistance, hypoxia, and retained-secretion pneumonia. Use closed inline suctioning in ARDS patients to maintain PEEP during the procedure. Assess secretion character: pink frothy = pulmonary edema; purulent = infection; blood-tinged after trauma/suction = mucosal injury vs. hemoptysis — these have different implications.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d1">
+          <div class="insight-label">Advanced</div>
+          Escalating suction frequency to maintain airway patency is a workload signal — it should trigger re-evaluation of humidification strategy, bronchodilator adequacy, and mucolytics (N-acetylcysteine nebulization, hypertonic saline). In patients with neuromuscular disease or high spinal cord injury, impaired cough peak flow (&lt;160 L/min) means passive secretion clearance is the only mechanism — these patients are at extremely high risk of mucus plug-induced respiratory failure. Consider insufflation-exsufflation (mechanical cough assist) via the ETT if secretion burden is high and cough is absent. Also: in tracheostomy patients, differentiate between above-cuff secretion accumulation (needs subglottic suction) and below-cuff/pulmonary secretions (ETT suction) — they require separate management.
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       DOMAIN 6: ALARMS & SETTINGS REVIEW
+  ════════════════════════════════════════════════════ -->
+  
+
+  <section class="domain-section" id="d2">
+    <div class="domain-header" onclick="cl_toggleDomain('d2')">
+      <div class="domain-header-left">
+        <span class="domain-num">02</span>
+        <span class="domain-icon">↕</span>
+        <span class="domain-title" style="color:#00b896">Ventilation &amp; CO₂</span>
+      </div>
+      <div class="domain-header-right">
+        <span class="domain-progress-mini" id="prog-d2">0 / 5</span>
+        <span class="domain-toggle-icon">▼</span>
+      </div>
+    </div>
+    <div class="domain-body">
+      <div class="v500-strip">
+        <span class="v500-label">V500 Display →</span>
+        <span class="v500-param">VTe (exhaled)</span>
+        <span class="v500-param">Minute Volume (VE)</span>
+        <span class="v500-param">RR total</span>
+        <span class="v500-param">EtCO₂ (if capnography)</span>
+        <span class="v500-param">PaCO₂ from ABG</span>
+        <span class="v500-param">VD/VT estimation</span>
+      </div>
+
+      <div class="checklist" id="cl-d3">
+
+        <div class="check-item" data-domain="d2">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Confirm tidal volume: 4–8 mL/kg IBW; calculate IBW if not documented <span class="flag-badge flag-red">VILI Risk</span></div>
+              <div class="check-sub">IBW (male): 50 + 2.3 × (height in inches − 60). IBW (female): 45.5 + 2.3 × (height in inches − 60). Use VTe (exhaled), not set VTi.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d2">
+          <div class="insight-label">Foundation</div>
+          Tidal volume is dosed to ideal body weight (IBW), not actual body weight, because lung size correlates with height/frame — not adiposity. A 5'6" patient who weighs 300 lbs has roughly the same lung volume as a 5'6" patient who weighs 140 lbs. Dosing VT to actual body weight in an obese patient delivers volutrauma. The ARMA trial established 6 mL/kg IBW as the lung-protective standard in ARDS, showing a 9% absolute mortality reduction vs. 12 mL/kg. Always use exhaled VT (VTe) — the V500 displays this — because circuit compliance can make inspiratory VT (VTi) larger than what actually reaches the patient.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d2">
+          <div class="insight-label">Advanced</div>
+          6 mL/kg IBW is a ceiling, not a target. In patients with very low respiratory system compliance (Crs &lt;20 mL/cmH₂O), even 6 mL/kg may generate excessive driving pressure (ΔP = Pplat − PEEP). The driving pressure hypothesis (Amato et al., 2015) suggests targeting ΔP 10–16 cmH₂O is a stronger predictor of survival than VT per se. In patients where VT must be &lt;6 to achieve ΔP &lt;16, allow permissive hypercapnia (pH ≥7.20) rather than increasing volume. Conversely, in patients with near-normal compliance (early, mild ARDS, or non-ARDS lung disease), 6–8 mL/kg may be appropriate without meaningful VILI risk.
+        </div>
+
+        <div class="check-item" data-domain="d2">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Review PaCO₂ and pH from most recent ABG — is ventilation at goal?</div>
+              <div class="check-sub">Normal PaCO₂: 35–45 mmHg. In ARDS/lung-protective strategy: permissive hypercapnia acceptable if pH ≥7.20. Adjust RR first before VT.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d2">
+          <div class="insight-label">Foundation</div>
+          PaCO₂ is controlled by alveolar ventilation: VA = (VT − VD) × RR. To increase CO₂ clearance, you can increase RR or VT. In lung-protective ventilation, VT is constrained — so RR is the primary dial for PaCO₂. However, increasing RR has a ceiling: at high RR, expiratory time shortens, risking air trapping (auto-PEEP). As a rule of thumb, increasing RR reduces PaCO₂ proportionally only up to ~RR 35; beyond that, auto-PEEP typically develops and eliminates the benefit. Always interpret pH alongside PaCO₂ — a PaCO₂ of 55 with pH 7.30 is very different from PaCO₂ 55 with pH 7.15.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d2">
+          <div class="insight-label">Advanced</div>
+          The PaCO₂-EtCO₂ gradient (PaCO₂ − EtCO₂) reflects dead space ventilation. Normal gradient ≤5 mmHg. In PE, ARDS, severe emphysema, or low cardiac output states, the gradient widens significantly (can be &gt;20 mmHg). This means EtCO₂ substantially underestimates PaCO₂ and should not be used as a ventilation surrogate without recent blood gas correlation. Trending the gradient is clinically useful: a widening PaCO₂-EtCO₂ gap in a known PE patient suggests worsening dead space physiology (increasing clot burden, hemodynamic deterioration). Improving gap post-thrombectomy or thrombolytics is an early ventilatory sign of reperfusion.
+        </div>
+
+        <div class="check-item" data-domain="d2">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Evaluate minute ventilation (VE) in context of CO₂ production and dead space</div>
+              <div class="check-sub">VE = VT × RR. A rising VE requirement to maintain target PaCO₂ suggests increasing dead space or CO₂ production — not a ventilator problem.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d2">
+          <div class="insight-label">Foundation</div>
+          If a patient previously maintained PaCO₂ 42 mmHg on VE 7 L/min and now requires VE 12 L/min for the same PaCO₂, something has changed in their physiology — not the ventilator. Possibilities: increased CO₂ production (fever, pain, agitation, increased work of breathing, refeeding), increased dead space (worsening PE, new pneumothorax, low CO), or a combination. Chasing PaCO₂ by escalating VE without identifying the cause is treating a number, not a patient.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d2">
+          <div class="insight-label">Advanced</div>
+          VD/VT can be estimated from the Bohr-Enghoff equation using PaCO₂ and mixed expired CO₂ (PēCO₂ measured from the expiratory limb on the V500 if capnography is inline). VD/VT &gt;0.60 is associated with very high mortality in ARDS. Tracking VD/VT over time in ARDS or PE gives you more prognostic information than P/F ratio alone. In mechanically ventilated patients with increasing VD/VT despite improving oxygenation, consider fibroproliferative phase ARDS or evolving right heart failure as causes — both have different management trajectories.
+        </div>
+
+        <div class="check-item" data-domain="d2">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Assess I:E ratio — is expiratory time adequate for passive emptying? <span class="flag-badge flag-amber">Auto-PEEP Risk</span></div>
+              <div class="check-sub">Target I:E ≥1:2 in most patients; obstructive disease may need 1:3 to 1:4. Perform expiratory hold to quantify auto-PEEP if suspected.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d2">
+          <div class="insight-label">Foundation</div>
+          Expiratory time must be long enough for the lung to passively empty back to its resting volume before the next breath is delivered. If inspiration starts before emptying is complete, gas is trapped — this is auto-PEEP (also called intrinsic PEEP or PEEPi). Auto-PEEP adds to total end-expiratory pressure, affects trigger threshold (patient must overcome it to initiate a breath), and in severe cases causes hemodynamic compromise (impaired venous return, RV dilation). It's most common in high RR, long inspiratory times, obstructive physiology, or small ETT. The V500 expiratory hold maneuver directly measures it.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d2">
+          <div class="insight-label">Advanced</div>
+          Auto-PEEP measurement via expiratory hold is only valid in passive patients — respiratory muscle activity during the hold contaminates the measurement (pressure rises not from trapped gas but from muscle effort). In spontaneously breathing patients, esophageal manometry provides the definitive measure. Clinically, you can estimate auto-PEEP indirectly: in a passive patient, if the expiratory flow waveform has not returned to zero at the start of the next breath, auto-PEEP is present — the magnitude depends on how far from zero flow is at inspiration onset. This visual method is available on any V500 waveform display without a hold maneuver.
+        </div>
+
+        <div class="check-item" data-domain="d2">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Correlate ventilation with acid-base status — primary vs. compensatory role of PaCO₂</div>
+              <div class="check-sub">Is hypocapnia compensating metabolic acidosis? Is hypercapnia intentional (permissive) or reflecting inadequate ventilation?</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d2">
+          <div class="insight-label">Foundation</div>
+          When you see PaCO₂ 28 mmHg, don't immediately increase ventilation — the patient may be appropriately compensating for a severe metabolic acidosis (e.g., DKA, septic shock, lactic acidosis). If you reduce their RR to "normalize" PaCO₂ to 40, you've removed the compensation and the pH will plummet. Always read the full ABG: pH + PaCO₂ + HCO₃⁻ + BE. The ventilator manages PaCO₂; the kidneys manage HCO₃⁻. Your job is to understand which system is the primary driver and which is compensating — and support accordingly.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d2">
+          <div class="insight-label">Advanced</div>
+          Mixed acid-base disorders are the rule, not the exception, in the MICU. A patient with ARDS + AKI + sepsis may have simultaneous respiratory acidosis, metabolic acidosis (lactic), and metabolic alkalosis (diuretic-related). Using the Stewart approach (strong ion difference, ATOT) gives more mechanistic insight than traditional BE analysis in these patients, particularly when hypoalbuminemia (common in MICU) masks the true metabolic acid load (albumin is a weak acid — low albumin causes apparent metabolic alkalosis that offsets the true acidosis). This is directly relevant to interpreting when permissive hypercapnia is truly safe vs. when it compounds an already critically low pH.
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       DOMAIN 4: LUNG MECHANICS
+  ════════════════════════════════════════════════════ -->
+  
+
+  <section class="domain-section" id="d3">
+    <div class="domain-header" onclick="cl_toggleDomain('d3')">
+      <div class="domain-header-left">
+        <span class="domain-num">03</span>
+        <span class="domain-icon">○</span>
+        <span class="domain-title" style="color:#f5a623">Oxygenation</span>
+      </div>
+      <div class="domain-header-right">
+        <span class="domain-progress-mini" id="prog-d3">0 / 5</span>
+        <span class="domain-toggle-icon">▼</span>
+      </div>
+    </div>
+    <div class="domain-body">
+      <div class="v500-strip">
+        <span class="v500-label">V500 Display →</span>
+        <span class="v500-param">FiO₂ (set vs. delivered)</span>
+        <span class="v500-param">PEEP / PEEPtotal</span>
+        <span class="v500-param">Mean Airway Pressure</span>
+        <span class="v500-param">SpO₂ (if integrated)</span>
+        <span class="v500-param">P/F ratio trend</span>
+      </div>
+
+      <div class="checklist" id="cl-d2">
+
+        <div class="check-item" data-domain="d3">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Confirm SpO₂ target is met and correlates with most recent PaO₂</div>
+              <div class="check-sub">MICU targets typically SpO₂ 92–96%. Liberal oxygenation (SpO₂ &gt;98% on high FiO₂) is not benign. Confirm last ABG P/F ratio.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d3">
+          <div class="insight-label">Foundation</div>
+          SpO₂ is a surrogate for PaO₂, but the relationship is nonlinear (oxyhemoglobin dissociation curve). Between SpO₂ 92–98%, the PaO₂ can range from ~60–150 mmHg. Targeting SpO₂ &gt;98% doesn't meaningfully increase oxygen delivery (DO₂) because hemoglobin is already near-saturated — but it does require higher FiO₂ or PEEP, with attendant risks (O₂ toxicity, hemodynamic effects of PEEP). Evidence from ICU trials (LOCO₂, OXYGEN-ICU) suggests conservative O₂ targets may improve outcomes. Don't chase SpO₂ 99–100% in the MICU.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d3">
+          <div class="insight-label">Advanced</div>
+          SpO₂ reliability is impaired by poor perfusion states (low MAP, vasoconstriction), dyshemoglobinemias (carboxyhemoglobin will falsely elevate SpO₂), and nail polish/probe position. In septic shock with low SvO₂, a SpO₂ of 94% may reflect adequate arterial saturation but severely impaired oxygen extraction — the bottleneck is delivery (DO₂ = CO × CaO₂), not vent settings. Conversely, in a patient with high cardiac output post-resuscitation, SpO₂ 92% may be entirely adequate. Always interpret oxygenation in the context of hemodynamics and metabolic demand, not as an isolated ventilator parameter.
+        </div>
+
+        <div class="check-item" data-domain="d3">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Assess FiO₂ — is it at the lowest effective level? <span class="flag-badge flag-amber">Wean If Able</span></div>
+              <div class="check-sub">FiO₂ &gt;0.60 sustained &gt;24h carries O₂ toxicity risk (absorption atelectasis, RILI). Titrate down in 5–10% increments targeting SpO₂ ≥92%.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d3">
+          <div class="insight-label">Foundation</div>
+          High FiO₂ causes two forms of lung injury: (1) Absorption atelectasis — when FiO₂ is high, nitrogen (the "splint" gas) is washed out of alveoli. O₂ is rapidly absorbed, and alveoli with low V/Q ratios collapse. (2) Oxygen free radical injury — hyperoxia generates reactive oxygen species that damage alveolar epithelium and endothelium. These effects are time- and concentration-dependent. A useful clinical rule: try to keep FiO₂ ≤0.60 and use PEEP as the primary strategy for maintaining oxygenation in ARDS or diffuse parenchymal disease.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d3">
+          <div class="insight-label">Advanced</div>
+          The FiO₂/PEEP tradeoff has hemodynamic implications. In RV-sensitive patients (ARDS with cor pulmonale, elevated PVR), increasing PEEP can compromise RV afterload and reduce CO — negating any oxygenation gain at the DO₂ level. In this context, accepting a slightly higher FiO₂ to keep PEEP lower is physiologically defensible. The V500 displays mean airway pressure (mPaw) — this is a better integrative measure of oxygenatory support than either FiO₂ or PEEP alone, as it reflects the total pressure-time product applied to the lung. Track mPaw trend alongside FiO₂ and SpO₂.
+        </div>
+
+        <div class="check-item" data-domain="d3">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Evaluate PEEP level — appropriateness for lung pathology and hemodynamic tolerance</div>
+              <div class="check-sub">Verify set PEEP vs. total PEEP (PEEP + auto-PEEP). Assess RV tolerance: hypotension, CVP trend, hepatic venous distension.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d3">
+          <div class="insight-label">Foundation</div>
+          PEEP serves two purposes: (1) recruiting collapsed or flood-prone alveoli to improve oxygenation, and (2) preventing end-expiratory derecruitment (atelectrauma). However, excessive PEEP overdistends already-open alveoli, increases dead space (overdistended alveoli → elevated V/Q ratio), and reduces venous return (elevated intrathoracic pressure → reduced preload). In practice: in diffuse lung disease (ARDS), higher PEEP is often beneficial. In focal disease (unilateral pneumonia, lobar collapse), high PEEP may overdistend healthy lung. Use clinical + radiographic context to guide PEEP titration.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d3">
+          <div class="insight-label">Advanced</div>
+          The V500's expiratory hold maneuver quantifies auto-PEEP — total PEEP minus set PEEP equals intrinsic PEEP. This is critical in patients with obstructive physiology or high RR. To assess PEEP's effect on lung recruitment vs. overdistension, examine static compliance before and after a PEEP change: if compliance improves with higher PEEP → recruitment effect dominant; if compliance falls → overdistension. Also use the stress index: a flow-time scalar with a concave-up pressure rise during constant-flow VC breaths suggests overdistension; concave-down suggests ongoing recruitment. The V500 supports this maneuver assessment natively in VC mode.
+        </div>
+
+        <div class="check-item" data-domain="d3">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Review recent ABG/VBG: P/F ratio, SaO₂, PaO₂ trend</div>
+              <div class="check-sub">Calculate P/F = PaO₂ ÷ FiO₂. ARDS severity: mild ≥200, moderate 100–200, severe &lt;100. Trend matters more than snapshot.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d3">
+          <div class="insight-label">Foundation</div>
+          The P/F ratio normalizes oxygenation performance for the FiO₂ being used. A PaO₂ of 70 mmHg on FiO₂ 0.35 (P/F = 200) is very different from PaO₂ 70 on FiO₂ 0.80 (P/F = 87.5). P/F ratio classifies ARDS severity per Berlin criteria and guides decisions about proning, neuromuscular blockade, and ECMO candidacy. Importantly, P/F ratio is influenced by PEEP level — always record the PEEP at the time of the blood gas when documenting or trending P/F.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d3">
+          <div class="insight-label">Advanced</div>
+          P/F ratio has known limitations: it doesn't account for PEEP or FiO₂-independent factors, and it varies with CO and Hgb. The oxygenation index (OI = FiO₂ × mPaw × 100 / PaO₂) is more comprehensive as it includes mean airway pressure — preferred in pediatrics and increasingly relevant in adults. In your MICU, when comparing two patients both with P/F = 150, the one achieving it on PEEP 18/FiO₂ 0.80 vs. PEEP 8/FiO₂ 0.50 has radically different disease severity and VILI risk — OI captures this; P/F does not.
+        </div>
+
+        <div class="check-item" data-domain="d3">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Patient positioning assessed — HOB ≥30°, prone therapy status if applicable <span class="flag-badge flag-cyan">Bundled Care</span></div>
+              <div class="check-sub">Supine position worsens V/Q mismatch and increases aspiration risk. Proning in severe ARDS (P/F &lt;150) reduces VILI and mortality.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d3">
+          <div class="insight-label">Foundation</div>
+          Positioning is a ventilator strategy. Prone positioning redistributes perfusion from dorsal (atelectatic, flooded) to ventral (better-aerated) lung regions — not by moving air, but by moving blood. This improves V/Q matching and reduces dorsal alveolar stress. The PROSEVA trial showed a 16% absolute mortality reduction in severe ARDS patients proned ≥16 hours/day. This is one of the highest-yield interventions in ARDS management. If a patient has P/F &lt;150 on ≥0.6 FiO₂ and ≥5 PEEP, and prone therapy hasn't been initiated, it warrants a direct conversation with the team.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d3">
+          <div class="insight-label">Advanced</div>
+          Prone positioning also reduces lung stress by distributing VT more homogeneously — the dorsal-to-ventral pleural pressure gradient (which causes overdistension in ventral lung) is attenuated in prone. This is a VILI-reduction mechanism independent of oxygenation improvement. In patients on venovenous ECMO, prone is feasible and increasingly practiced; circuit management during turns requires specific preparation. After returning to supine, SpO₂ and lung compliance improvement persisting for &gt;4 hours post-turn ("prone responder") is a positive prognostic sign. Loss of prone response over serial sessions suggests irreversible consolidation or fibroproliferation.
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       DOMAIN 3: VENTILATION & CO₂ MANAGEMENT
+  ════════════════════════════════════════════════════ -->
+  
+
+  <section class="domain-section" id="d4">
+    <div class="domain-header" onclick="cl_toggleDomain('d4')">
+      <div class="domain-header-left">
+        <span class="domain-num">04</span>
+        <span class="domain-icon">〜</span>
+        <span class="domain-title" style="color:#00d4ff">Patient-Ventilator Synchrony</span>
+      </div>
+      <div class="domain-header-right">
+        <span class="domain-progress-mini" id="prog-d4">0 / 6</span>
+        <span class="domain-toggle-icon">▼</span>
+      </div>
+    </div>
+    <div class="domain-body">
+      <div class="v500-strip">
+        <span class="v500-label">V500 Display →</span>
+        <span class="v500-param">Flow-Time waveform</span>
+        <span class="v500-param">Pressure-Time waveform</span>
+        <span class="v500-param">Volume-Time waveform</span>
+        <span class="v500-param">Trigger indicator</span>
+        <span class="v500-param">fTotal vs fSet</span>
+        <span class="v500-param">AutoPEEP loop</span>
+      </div>
+
+      <div class="checklist" id="cl-d1">
+
+        <div class="sep-label">Trigger Assessment</div>
+
+        <div class="check-item" data-domain="d4">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Verify trigger type and sensitivity are appropriate for patient effort</div>
+              <div class="check-sub">V500 default: flow trigger 2 L/min. Confirm patient-initiated breaths register reliably without auto-triggering.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d4">
+          <div class="insight-label">Foundation</div>
+          Flow triggering detects patient effort by sensing a drop in the bias flow circuit. If sensitivity is too high (e.g., 0.5 L/min), cardiac oscillations or water in the circuit can auto-trigger, delivering breaths the patient didn't initiate. If too low (e.g., 5 L/min), the patient works harder to open the valve — increasing WOB. Watch fTotal: if it exceeds fSet, the patient is triggering additional breaths. That's not always bad — it means respiratory drive is present — but missed triggers are harmful and silent.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d4">
+          <div class="insight-label">Advanced</div>
+          Distinguish auto-triggering (fTotal &gt; fSet with no clinical drive, cardiogenic artifact on flow waveform) from genuine tachypnea. On the V500, inspect the flow-time scalar: a trigger with a flat or declining expiratory flow interrupted by delivery suggests air-trapping driving pseudo-effort. In SIMV, confirm that mandatory breaths aren't stacking onto spontaneous efforts — look for volume summation on the volume-time curve.
+        </div>
+
+        <div class="check-item" data-domain="d4">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Assess for missed triggers on flow-time waveform <span class="flag-badge flag-red">Critical</span></div>
+              <div class="check-sub">Look for deflections in the expiratory flow baseline that do not result in a delivered breath.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d4">
+          <div class="insight-label">Foundation</div>
+          A missed trigger means the patient made a respiratory effort but the ventilator did not respond with a breath. On the flow-time waveform, you'll see the expiratory flow curve briefly deflect back toward zero (patient pulls flow) but the ventilator doesn't cycle into inspiration. This increases patient work of breathing significantly and is a major cause of distress, tachypnea, and dyssynchrony. Causes include: trigger sensitivity too low, severe auto-PEEP, or high respiratory drive outpacing vent response.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d4">
+          <div class="insight-label">Advanced</div>
+          In the presence of significant auto-PEEP, applied PEEP must equal ~80% of auto-PEEP to unload the trigger threshold — the patient must first overcome the trapped pressure before any trigger-sensitive flow change occurs. Missed triggers in this context don't resolve with trigger sensitivity adjustment alone. Quantify auto-PEEP via expiratory hold; titrate extrinsic PEEP accordingly. Also consider mode: in PSV with high drive, consider transitioning to PRVC or adding backup rate to reduce trigger work.
+        </div>
+
+        <div class="sep-label">Flow & Cycle Dyssynchrony</div>
+
+        <div class="check-item" data-domain="d4">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Inspect flow waveform for flow starvation (scooped pressure-time curve)</div>
+              <div class="check-sub">In VC-AC: a concave downward pressure curve during inspiration indicates demand exceeds delivered flow.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d4">
+          <div class="insight-label">Foundation</div>
+          In volume-controlled modes, the ventilator delivers a fixed flow rate. If the patient's respiratory demand exceeds this flow (i.e., they're trying to inhale faster than the vent delivers), the pressure-time waveform will appear "scooped" or concave rather than the expected convex or square shape. This is called flow starvation. The patient is working hard against the ventilator — increasing WOB, oxygen consumption, and distress. Fix: increase peak flow or switch to a pressure-targeted mode (PC-AC or PSV) which delivers variable flow to match demand.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d4">
+          <div class="insight-label">Advanced</div>
+          Flow starvation in VC should prompt a mode transition consideration, but first interrogate WHY demand is high. Unresolved pain, fever, metabolic acidosis (compensatory), or sepsis physiology all elevate drive — simply increasing flow masks the problem. In PC-AC, the inverse problem can occur: if flow decelerates to zero well before neural Ti ends, the patient may double-trigger or breath-stack. Compare set Ti to the point where flow reaches zero; if flow ends at 60% of Ti, the breath is effectively pressure-limited but time-cycled late — consider reducing Ti or switching to PSV where cycling is flow-cycled to match neural Ti.
+        </div>
+
+        <div class="check-item" data-domain="d4">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Evaluate for double-triggering or breath stacking <span class="flag-badge flag-amber">Monitor</span></div>
+              <div class="check-sub">Two consecutive breaths with very short expiratory time; second breath initiated before lung empties. Check VT delivered vs set.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d4">
+          <div class="insight-label">Foundation</div>
+          Double-triggering happens when a patient's neural inspiratory time is longer than the ventilator's set inspiratory time. The vent cycles off, but the patient is still trying to inhale — so they trigger a second breath immediately. This delivers two mechanical breaths in rapid succession, effectively doubling the tidal volume. In lung-protective ventilation strategies, this is dangerous: it can cause volutrauma even when individual set VT appears safe. Watch for two stacked volume-time waveforms and a sudden spike in peak airway pressure.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d4">
+          <div class="insight-label">Advanced</div>
+          Double-triggering is underrecognized on the V500 because each breath is charted individually — the stacked VT is the sum. In ARDS, neural drive can be very high (elevated PaCO₂, hypoxia, acidosis) — targeting permissive hypercapnia may paradoxically worsen stacking by sustaining drive. Strategies: extend Ti to better match neural Ti (monitor: flow should not still be positive at cycle-off), increase sedation/analgesia, or transition to APRV if appropriate. Note: in APRV, spontaneous breathing during Thigh is generally beneficial — don't conflate APRV stacking with VC stacking.
+        </div>
+
+        <div class="check-item" data-domain="d4">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Assess for premature or delayed cycle-off in pressure support breaths</div>
+              <div class="check-sub">V500 PSV: cycle criterion default is 25% of peak flow. Adjust per patient (COPD: lower %, restrictive: higher %).</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d4">
+          <div class="insight-label">Foundation</div>
+          In pressure support ventilation, the breath cycles off when inspiratory flow decelerates to a set percentage of peak flow (e.g., 25%). If this threshold is set too low, the breath continues after the patient's neural inspiration ends — causing the patient to actively exhale against the vent (expiratory dyssynchrony). If too high, cycling happens before the patient is ready — causing short breaths and increased rate. The V500 allows adjustment of this cycle criterion; in obstructive disease (COPD, asthma), air-trapping slows flow deceleration, so a higher % cycle criterion terminates the breath more appropriately.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d4">
+          <div class="insight-label">Advanced</div>
+          Expiratory dyssynchrony (late cycling) is identified on the pressure-time waveform as a pressure spike at end-inspiration — the patient fires their expiratory muscles while the vent is still delivering. On the V500's Paw-time curve, this appears as an upward deflection at cycle-off rather than a smooth return to baseline. It's distinct from a simple pressure overshoot artifact. Titrate the cycle-off percentage: COPD patients often need 40–60%, while ARDS patients (stiff lungs, rapid flow deceleration) may cycle prematurely at high % and need it lowered to 10–15%.
+        </div>
+
+        <div class="interpret-gate">
+          <div class="gate-label">⬡ Interpret Before Proceeding</div>
+          Before adjusting any single synchrony parameter: step back and identify the dominant dyssynchrony type. Multiple simultaneous dyssynchronies (e.g., flow starvation + double-triggering) may share a common root cause (high drive, inappropriate mode). Treat the root, not each waveform artifact in isolation.
+        </div>
+
+        <div class="check-item" data-domain="d4">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Clinical correlation: patient comfort, accessory muscle use, RR trend, diaphoresis</div>
+              <div class="check-sub">Waveform assessment is incomplete without bedside observation. A "clean" waveform in a distressed patient demands explanation.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d4">
+          <div class="insight-label">Foundation</div>
+          Waveforms show you mechanics, not suffering. A patient can have technically adequate waveforms and still be in significant distress — particularly if they're on inappropriately high sedation masking their drive, or conversely, fighting the vent with subtle efforts the waveform doesn't fully capture. Always look at the patient: accessory muscle recruitment (SCM, scalenes), nasal flaring, abdominal paradox, and facial grimacing are the ground truth. The ventilator is a tool to support a patient, not a number to optimize in isolation.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d4">
+          <div class="insight-label">Advanced</div>
+          Patient-ventilator interaction assessment without esophageal manometry or diaphragm EMG has fundamental limits. In deeply sedated patients, waveform artifacts (cardiac oscillations, circuit compliance) may dominate the displayed signal. The V500's waveform resolution is clinically sufficient for most assessments, but subtle missed triggers in the 1–2 cmH₂O range are easily missed. If synchrony cannot be established despite mode/parameter optimization, consider NMB trial as a diagnostic (does oxygenation/ventilation improve without patient effort?) — this also helps distinguish ventilator-induced vs patient-induced VILI.
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       DOMAIN 2: OXYGENATION
+  ════════════════════════════════════════════════════ -->
+  
+
+  <section class="domain-section" id="d5">
+    <div class="domain-header" onclick="cl_toggleDomain('d5')">
+      <div class="domain-header-left">
+        <span class="domain-num">05</span>
+        <span class="domain-icon">◇</span>
+        <span class="domain-title" style="color:#4d9fff">Lung Mechanics</span>
+      </div>
+      <div class="domain-header-right">
+        <span class="domain-progress-mini" id="prog-d5">0 / 5</span>
+        <span class="domain-toggle-icon">▼</span>
+      </div>
+    </div>
+    <div class="domain-body">
+      <div class="v500-strip">
+        <span class="v500-label">V500 Display →</span>
+        <span class="v500-param">Ppeak</span>
+        <span class="v500-param">Pplat (insp. hold)</span>
+        <span class="v500-param">PEEP / auto-PEEP (exp. hold)</span>
+        <span class="v500-param">Cdyn / Cstat</span>
+        <span class="v500-param">Driving Pressure (ΔP)</span>
+        <span class="v500-param">Resistance (Raw)</span>
+        <span class="v500-param">P-V Loop</span>
+      </div>
+
+      <div class="checklist" id="cl-d4">
+
+        <div class="check-item" data-domain="d5">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Measure Pplat via inspiratory hold (passive patient only) — target &lt;30 cmH₂O <span class="flag-badge flag-red">VILI Risk</span></div>
+              <div class="check-sub">V500: hold inspiratory pause 0.5–2s. Pplat reflects alveolar pressure at end-inspiration. ΔP = Pplat − PEEP; target 10–16 cmH₂O.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d5">
+          <div class="insight-label">Foundation</div>
+          Pplat is measured during a brief pause at end-inspiration — when flow is zero and pressure equilibrates throughout the respiratory system. It represents the pressure being applied to the alveoli at peak lung volume. Pplat &gt;30 cmH₂O is associated with barotrauma and VILI. It differs from peak pressure (Ppeak), which also includes the resistive pressure drop across the airways and ETT — Ppeak can be high simply because the ETT is narrow or secretions are present, without harmful alveolar pressure. Always interpret Pplat, not just Ppeak, for parenchymal injury risk.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d5">
+          <div class="insight-label">Advanced</div>
+          Pplat measures respiratory system pressure (lung + chest wall). In patients with reduced chest wall compliance (obesity, ascites, abdominal compartment syndrome, prone positioning), elevated Pplat may reflect chest wall stiffness rather than alveolar overdistension. Transpulmonary pressure (PL = Paw − Ppl) requires esophageal manometry to isolate lung stress from chest wall contribution. A Pplat of 32 cmH₂O in a morbidly obese patient may correspond to a transpulmonary pressure of only 12 cmH₂O — entirely safe. This is the strongest argument for esophageal manometry in challenging ARDS cases where standard Pplat targets appear violated but lung-directed pressure may be acceptable.
+        </div>
+
+        <div class="check-item" data-domain="d5">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Calculate and trend driving pressure (ΔP = Pplat − PEEP) — target 10–16 cmH₂O</div>
+              <div class="check-sub">Driving pressure is the actual tidal stress applied to the respiratory system. It's a stronger mortality predictor than either VT/IBW or Pplat alone.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d5">
+          <div class="insight-label">Foundation</div>
+          Driving pressure (ΔP) represents the change in alveolar pressure caused by each tidal breath — essentially the mechanical stress per breath. PEEP sets the baseline; Pplat is the peak; ΔP is the swing. Mathematically, ΔP = VT ÷ Crs (static compliance). This means ΔP normalizes tidal volume to the functional lung size: the same VT in a stiff lung (small Crs) generates a much higher ΔP than in a compliant lung. This is why ΔP is a better index of VILI risk than VT/kg alone — it accounts for how much usable lung is actually receiving each breath.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d5">
+          <div class="insight-label">Advanced</div>
+          ΔP &gt;16 cmH₂O is associated with increased ARDS mortality across multiple studies (Amato 2015, re-analysis of ARMA/ALVEOLI/LOVS). A target range of 10–16 cmH₂O is more defensible than a single cutoff: very low ΔP (&lt;10) in the context of high PEEP and low VT can reflect overdistension rather than lung protection — lower is not always better. Clinically, if ΔP is elevated: (1) reduce VT to lower ΔP even if already "protective," (2) consider increasing PEEP if plateau remains acceptable — if compliance improves (recruitment effect), ΔP falls; if compliance worsens (overdistension), ΔP rises — this gives you real-time feedback on whether higher PEEP is beneficial. The V500's SmartPulmonary function displays Crs directly, enabling continuous ΔP monitoring without repeated breath holds.
+        </div>
+
+        <div class="check-item" data-domain="d5">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Assess airway resistance (Raw) via Ppeak − Pplat difference, trend vs. prior</div>
+              <div class="check-sub">Normal Raw: 5–15 cmH₂O/L/s. Elevated Raw: bronchospasm, secretions, kinking, biting, or undersized ETT.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d5">
+          <div class="insight-label">Foundation</div>
+          The difference between peak pressure (Ppeak) and plateau pressure (Pplat) represents the pressure required to overcome airway resistance — this is the resistive pressure component. If Ppeak rises but Pplat remains stable, resistance has increased (secretions, bronchospasm, ETT obstruction) — the lung parenchyma is unchanged. If both Ppeak and Pplat rise together, compliance has worsened (worsening edema, consolidation, pneumothorax, abdominal distension). This distinction fundamentally guides your response: bronchodilator vs. suction vs. diuresis vs. urgent imaging.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d5">
+          <div class="insight-label">Advanced</div>
+          The V500 computes Raw directly in the Smart Pulmonary display (in passive patients on VC): Raw = (Ppeak − Pplat) ÷ inspiratory flow rate. Track this numerically rather than estimating from pressure differential alone — flow rate matters. A Ppeak − Pplat of 10 at a flow of 60 L/min (1 L/s) gives Raw = 10 cmH₂O/L/s; the same differential at 30 L/min gives Raw = 20. Worsening Raw in the absence of new secretions, fever, or hemoptysis should prompt evaluation of the ETT and ventilator circuit: partial occlusion by biting, cuff herniation over the ETT bevel, or circuit water are mechanical causes that are immediately correctable.
+        </div>
+
+        <div class="check-item" data-domain="d5">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Trend static compliance (Crs) over shift — improving or deteriorating?</div>
+              <div class="check-sub">Crs = VTe ÷ (Pplat − total PEEP). Normal: 60–100 mL/cmH₂O. ARDS: often 15–40. Trend &gt; single value.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d5">
+          <div class="insight-label">Foundation</div>
+          Compliance measures how easily the respiratory system stretches per unit of pressure — it's a global index of lung stiffness. A falling compliance over your shift means the lungs are getting stiffer — potential causes include worsening pulmonary edema, progressive consolidation, new effusion, pneumothorax, or worsening ARDS. Rising compliance means improvement. Compliance is one of the most sensitive early indicators of respiratory change — often it shifts before oxygenation parameters change, making it a valuable leading indicator. Document a compliance number at the start and end of every shift.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d5">
+          <div class="insight-label">Advanced</div>
+          Compliance interpretation requires context: a sudden drop in Crs mid-shift should prompt systematic exclusion of acute reversible causes before attributing it to disease progression: (1) pneumothorax — immediate CXR; (2) mucus plug / main-stem intubation — physical exam, suction, CXR; (3) abdominal distension / ascites — examine abdomen; (4) patient biting, breath-stacking — synchrony assessment. In obese patients and those with significant pleural effusions, Crs will always appear lower than true lung compliance — the measured Crs is that of the combined respiratory system (lung + chest wall). This is not a reflection of lung disease severity alone.
+        </div>
+
+        <div class="check-item" data-domain="d5">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Review P-V loop morphology on V500 for overdistension, secretions, or recruitment opportunity</div>
+              <div class="check-sub">Duck-beak deformity at top-right → overdistension. Increased loop area (hysteresis) → decreased compliance. "Beaking" → secretions/obstruction.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d5">
+          <div class="insight-label">Foundation</div>
+          The pressure-volume loop on the V500 graphs lung volume against airway pressure for each breath. The inspiratory limb (lower curve) and expiratory limb (upper curve) together form a loop — the area between them is hysteresis (energy lost to viscoelasticity and surfactant). A normal loop is smooth and elliptical. Deformities carry specific meaning: a "beak" at the top of the inspiratory limb indicates overdistension (the lung is reaching the limits of its compliance). A concave upward inspiratory segment suggests ongoing recruitment (lower inflection point). The V500 can display this in real-time — it's one of the most information-dense single displays available.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d5">
+          <div class="insight-label">Advanced</div>
+          The P-V loop on the V500 in dynamic (tidal) conditions reflects a combination of resistive and elastic properties — it's not a true static P-V curve. The loop shifts with changes in PEEP, flow rate, and respiratory muscle activity. For meaningful overdistension assessment, a slow-flow inflation (quasi-static) P-V curve provides a more accurate lower and upper inflection point; the V500 supports this via the DME (Dynamic Mechanical Elastance) maneuver. Clinically, repeated daily P-V loops help track disease trajectory in ARDS. In fibroproliferative ARDS (weeks in), you'll see the upper inflection point disappear and the loop steepen — reflecting reduced recruitability and shifting pathophysiology from exudative to mechanical.
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       DOMAIN 5: AIRWAY & CIRCUIT
+  ════════════════════════════════════════════════════ -->
+  
+
+  <section class="domain-section" id="d6">
+    <div class="domain-header" onclick="cl_toggleDomain('d6')">
+      <div class="domain-header-left">
+        <span class="domain-num">06</span>
+        <span class="domain-icon">△</span>
+        <span class="domain-title" style="color:#ff4d6a">Alarms &amp; Settings Appropriateness</span>
+      </div>
+      <div class="domain-header-right">
+        <span class="domain-progress-mini" id="prog-d6">0 / 5</span>
+        <span class="domain-toggle-icon">▼</span>
+      </div>
+    </div>
+    <div class="domain-body">
+      <div class="v500-strip">
+        <span class="v500-label">V500 Display →</span>
+        <span class="v500-param">Alarm Log</span>
+        <span class="v500-param">High/Low Ppeak alarm</span>
+        <span class="v500-param">Low VTe / low VE alarm</span>
+        <span class="v500-param">High RR alarm</span>
+        <span class="v500-param">Apnea alarm</span>
+        <span class="v500-param">FiO₂ alarm</span>
+      </div>
+
+      <div class="checklist" id="cl-d6">
+
+        <div class="check-item" data-domain="d6">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Verify all alarms are enabled, appropriate to current settings, and not silenced/overridden <span class="flag-badge flag-red">Safety</span></div>
+              <div class="check-sub">V500 alarm log review: note frequency and type of recent alarms. Frequent alarms that were silenced without resolution are a patient safety red flag.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d6">
+          <div class="insight-label">Foundation</div>
+          Ventilator alarms are not nuisances — they are safety nets. The most dangerous alarm is one set so far outside normal parameters that it never fires, or one that has been silenced and not addressed. Every alarm should be set to reflect the patient's current physiology plus a clinically meaningful deviation: the high pressure alarm should be ~10 cmH₂O above current Ppeak (not 60 cmH₂O as a default), the low VT alarm should be set to detect disconnection or significant leak, the apnea alarm must be active in any patient who might lose respiratory drive. Review the V500 alarm log at the start of each shift — recurring alarms that were silenced by the prior RT may indicate an unresolved problem.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d6">
+          <div class="insight-label">Advanced</div>
+          Alarm fatigue is a documented contributor to adverse events in the ICU — mechanical ventilators generate some of the highest alarm burdens. The V500's SmartAlarm functionality can reduce nuisance alarms by dynamically adjusting thresholds, but this requires configuration aligned with patient-specific goals. Default factory alarms are never appropriate for MICU patients — they are set conservatively wide to prevent premature alarming in manufacturer testing. At shift start, individualize every alarm limit. Document alarm settings in the chart as a component of respiratory therapy assessment — this creates accountability and a clinical record of intentional setting rather than inherited defaults.
+        </div>
+
+        <div class="check-item" data-domain="d6">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Confirm current mode is appropriate for patient's clinical status and goals of care</div>
+              <div class="check-sub">Mode should match: depth of sedation, respiratory drive, degree of lung injury, and trajectory (escalating vs. weaning). Inherited modes from prior shift may be outdated.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d6">
+          <div class="insight-label">Foundation</div>
+          Ventilator modes are not permanent — they should evolve with the patient. A patient who was in PC-AC for acute ARDS at 3am may be appropriate for PS-CPAP by noon if they've improved significantly. A patient placed on SIMV as a "weaning" strategy in 2010 may still be on SIMV in 2024 because no one changed it — SIMV has largely fallen out of favor as a weaning mode (it doesn't consistently reduce work of breathing during the mandatory breaths). At the start of each shift, ask: does this mode still make sense for who this patient is today — not who they were at intubation or the last attending note?
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d6">
+          <div class="insight-label">Advanced</div>
+          Mode selection should be driven by a physiologic rationale, not habit or institutional inertia. Key questions: Is the patient's drive reliably present and strong enough for PSV cycling? (If not, AC prevents apnea.) Does the patient need volume guarantee (PC-VG/PRVC) to prevent tidal volume variability in a high-drive state? Is APRV indicated for refractory hypoxemia with the potential to reduce sedation? The V500's AutoFlow feature (volume-targeted pressure control) is particularly useful when patients have variable compliance or drive — it adjusts pressure delivery breath-to-breath to maintain target VT. Ensure AutoFlow is intentionally enabled or disabled, not accidentally left on from a prior scenario.
+        </div>
+
+        <div class="check-item" data-domain="d6">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Assess sedation-analgesia depth in context of ventilator settings and synchrony <span class="flag-badge flag-cyan">SAT/SBT Bundle</span></div>
+              <div class="check-sub">RASS target should align with mode and phase. Deep sedation (RASS −4 to −5) with PSV is a mismatch. Correlate with SAT/SBT protocol status.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d5">
+          <div class="insight-label">Foundation</div>
+          Sedation and ventilation are inseparable. Deep sedation blunts respiratory drive — which is appropriate when NMB is used or in severe ARDS with high VILI risk from patient effort, but harmful when it prevents weaning progress, causes delirium, and prolongs ICU stay. The ABCDEF bundle (Assess, Breathe, Coordinate, Delirium, Early mobility, Family) emphasizes daily SAT (spontaneous awakening trial) paired with SBT (spontaneous breathing trial) — coordination between nursing (stopping sedation) and RT (conducting the breathing trial) is what makes this bundle work. Know your patient's SAT/SBT status every shift — it's your primary weaning tool.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d6">
+          <div class="insight-label">Advanced</div>
+          The relationship between sedation and VILI is bidirectional and underappreciated. Deep sedation reduces diaphragm activity — which in the short term reduces patient-imposed VILI (P-SILI), but over days causes diaphragm atrophy (VIDD: ventilator-induced diaphragm dysfunction), prolonging weaning. The therapeutic window for sedation in spontaneously breathing MICU patients is narrow: enough to prevent P-SILI (Pes swings &gt;15 cmH₂O suggest injurious effort) but not so deep as to cause VIDD. Without esophageal manometry, RASS is a crude but available surrogate — targeting RASS −1 to 0 in non-ARDS patients, and RASS −2 in moderate ARDS, while monitoring closely for dyssynchrony.
+        </div>
+
+        <div class="check-item" data-domain="d6">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Evaluate weaning readiness criteria if patient is improving — document and communicate to team</div>
+              <div class="check-sub">Core criteria: FiO₂ ≤0.40 with SpO₂ ≥92%, PEEP ≤8, hemodynamic stability, adequate drive, manageable secretions, tolerated SAT. Initiate SBT protocol if met.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d6">
+          <div class="insight-label">Foundation</div>
+          Weaning readiness should be assessed every shift — not just when the physician asks. If a patient meets criteria, it's the RT's professional responsibility to identify this and bring it to the team. The longer a patient stays on mechanical ventilation beyond the point they are ready to wean, the higher the risk of complications: VAP, VIDD, ICU-acquired weakness, delirium. An SBT typically consists of 30–120 minutes of minimal ventilatory support (CPAP 5/PS 5 or T-piece) while monitoring for failure criteria: RR &gt;35, SpO₂ &lt;90%, HR increase &gt;20%, accessory muscle use, diaphoresis, agitation.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d6">
+          <div class="insight-label">Advanced</div>
+          Standard SBT criteria have sensitivity and specificity limitations — patients who pass SBT still fail extubation ~15–20% of the time, primarily from upper airway obstruction, secretion burden, or post-extubation respiratory failure from increased WOB without ventilatory support. Tools to improve extubation prediction: RSBI (f/VT) &lt;105 has moderate PPV but poor NPV for extubation success; cuff leak test for post-extubation stridor prediction in high-risk patients (prolonged intubation, female, difficult airway); diaphragm ultrasound (excursion &gt;11 mm and thickening fraction &gt;20% during SBT predicts success better than RSBI). Discuss high-risk extubation candidates proactively: NIV bridge, high-flow nasal cannula standby, anesthesia notification — don't extubate and hope.
+        </div>
+
+        <div class="check-item" data-domain="d6">
+          <div class="check-col" onclick="cl_toggleCheck(this)">
+            <div class="custom-check"></div>
+            <div class="check-content">
+              <div class="check-text">Document: settings, mechanics, assessment findings, and any changes made with rationale</div>
+              <div class="check-sub">A respiratory note without documented Pplat, compliance, and synchrony assessment is clinically incomplete. Your documentation is your clinical reasoning, made visible.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-panel novice-panel" data-domain="d6">
+          <div class="insight-label">Foundation</div>
+          Documentation is not a clerical task — it's how your clinical assessment becomes part of the patient's care record, communicates to the next provider, and demonstrates the value of respiratory therapy. A complete ventilator note should include: current settings, key mechanics (Pplat, compliance, driving pressure), synchrony observations, blood gas correlation, any changes made and why, and a clinical trajectory statement. "Vent at prior settings, patient tolerating" is not a clinical note — it tells the next RT nothing about what you actually assessed. Write notes as if the next provider has never seen the patient.
+        </div>
+        <div class="insight-panel expert-panel" data-domain="d6">
+          <div class="insight-label">Advanced</div>
+          Your documentation is also your clinical reasoning trail. If you changed PEEP from 10 to 12 at 0800, the note should reflect: why (SpO₂ trending down to 89%, FiO₂ already at 0.55), what you expected (improved oxygenation with acceptable hemodynamic effect), and what happened (SpO₂ improved to 94%, BP stable, will reassess in 30 min). This transforms a settings change into a clinical intervention with rationale and follow-through — the standard expected of a practitioner operating at the top of their license. It also protects you medico-legally and contributes to institutional quality improvement data.
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+
+
+</main>
+
+<div class="footer-actions">
+  <button class="action-btn reset" onclick="cl_resetAll()">Reset</button>
+  <button class="action-btn complete" onclick="cl_markComplete()">Complete Assessment</button>
+</div>
+    </div>
+
+
+        
+
+    <!-- ── ABG / VBG ── -->
+    <div class="module-panel" id="panel-abg">
+      <div class="abg-screen">
+
+        <div class="screen-header">
+          <div class="screen-title">ABG / VBG Interpreter</div>
+          <div class="screen-sub">STEPWISE ACID-BASE INTERPRETATION</div>
+        </div>
+
+        <!-- Source toggle -->
+        <div class="source-toggle">
+          <button class="source-btn active" onclick="setSource('abg')" id="btn-abg">Arterial (ABG)</button>
+          <button class="source-btn" onclick="setSource('vbg')" id="btn-vbg">Venous (VBG)</button>
+        </div>
+
+        <!-- VBG disclaimer -->
+        <div class="vbg-disclaimer" id="vbgDisclaimer">
+          <strong>VBG in critical care:</strong> VBG pH and PaCO₂ correlate reasonably with ABG in hemodynamically stable patients (pH offset ≈ 0.03–0.05, PvCO₂ ≈ PaCO₂ + 3–8 mmHg). In shock, low cardiac output, or severe acidosis, this correlation degrades significantly. Do not substitute VBG for ABG when precise oxygenation or ventilatory assessment is required. PvO₂ reflects mixed venous saturation, not arterial oxygenation.
+        </div>
+
+        <!-- Inputs -->
+        <div class="input-card">
+          <div class="input-card-title">Primary Values</div>
+          <div class="input-row">
+            <div class="input-group">
+              <div class="input-label">pH</div>
+              <input class="abg-input" id="inp-ph" type="number" step="0.01" min="6.5" max="8.0" placeholder="7.40">
+            </div>
+            <div class="input-group">
+              <div class="input-label">PaCO₂ <span class="unit">mmHg</span></div>
+              <input class="abg-input" id="inp-pco2" type="number" step="1" min="10" max="120" placeholder="40">
+            </div>
+          </div>
+          <div class="input-row">
+            <div class="input-group">
+              <div class="input-label">HCO₃⁻ <span class="unit">mEq/L</span></div>
+              <input class="abg-input" id="inp-hco3" type="number" step="1" min="5" max="60" placeholder="24">
+            </div>
+            <div class="input-group">
+              <div class="input-label">PaO₂ <span class="unit">mmHg</span> <span class="opt-badge" id="pao2-opt">ABG</span></div>
+              <input class="abg-input" id="inp-pao2" type="number" step="1" min="20" max="600" placeholder="95">
+            </div>
+          </div>
+        </div>
+
+        <div class="input-card">
+          <div class="input-card-title">Additional Values</div>
+          <div class="input-row three">
+            <div class="input-group">
+              <div class="input-label">FiO₂ <span class="unit">decimal</span></div>
+              <input class="abg-input" id="inp-fio2" type="number" step="0.01" min="0.21" max="1.0" placeholder="0.21">
+            </div>
+            <div class="input-group">
+              <div class="input-label">Lactate <span class="unit">mmol/L</span> <span class="opt-badge">OPT</span></div>
+              <input class="abg-input" id="inp-lactate" type="number" step="0.1" min="0" max="30" placeholder="—">
+            </div>
+          </div>
+        </div>
+
+        <button class="interpret-btn" onclick="interpretABG()">Interpret →</button>
+
+        <!-- Results -->
+        <div class="abg-results" id="abgResults"></div>
+
+        <button class="reset-btn" onclick="resetABG()">Reset values</button>
+
+      </div>
+    </div>
+
+    <!-- ── V500 MODE DECISION TREE ── -->
+    <div class="module-panel" id="panel-tree">
+      <div class="tree-screen">
+
+        <div class="screen-header">
+          <div class="screen-title">V500 Mode Selector</div>
+          <div class="screen-sub">GUIDED CLINICAL REASONING · NOT A PRESCRIPTION</div>
+        </div>
+
+        <div class="tree-progress-bar">
+          <div class="tree-progress-fill" id="treeProgressFill" style="width:0%"></div>
+        </div>
+
+        <div class="tree-breadcrumb" id="treeBreadcrumb"></div>
+
+        <!-- NODES -->
+        <div id="treeContent"></div>
+
+      </div>
+    </div>
+
+  </div><!-- /content-area -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="goTo('home')" id="nav-home">
+      <span class="nav-icon">⌂</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" onclick="goTo('checklist')" id="nav-checklist">
+      <span class="nav-icon">☑</span>
+      <span class="nav-label">Checklist</span>
+    </button>
+    <button class="nav-item" onclick="goTo('abg')" id="nav-abg">
+      <span class="nav-icon">⬡</span>
+      <span class="nav-label">ABG</span>
+    </button>
+    <button class="nav-item" onclick="goTo('tree')" id="nav-tree">
+      <span class="nav-icon">⬣</span>
+      <span class="nav-label">Mode</span>
+    </button>
+  </nav>
+
+</div><!-- /app-shell -->
+
+<script>
+// ════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════
+
+let currentPanel = 'home';
+
+function goTo(id) {
+  // Deactivate current
+  const prev = document.getElementById('panel-' + currentPanel);
+  const prevNav = document.getElementById('nav-' + currentPanel);
+  if (prev) { prev.classList.remove('active'); }
+  if (prevNav) prevNav.classList.remove('active');
+
+  currentPanel = id;
+
+  // Activate new
+  const next = document.getElementById('panel-' + id);
+  const nextNav = document.getElementById('nav-' + id);
+  if (next) next.classList.add('active');
+  if (nextNav) nextNav.classList.add('active');
+
+  // Tools pre-rendered in DOM
+}
+
+// ════════════════════════════════════════════════════
+// ABG / VBG INTERPRETER
+// ════════════════════════════════════════════════════
+let abgSource = 'abg';
+
+function setSource(src) {
+  abgSource = src;
+  document.getElementById('btn-abg').classList.toggle('active', src === 'abg');
+  document.getElementById('btn-vbg').classList.toggle('active', src === 'vbg');
+  document.getElementById('vbgDisclaimer').classList.toggle('show', src === 'vbg');
+  const pao2opt = document.getElementById('pao2-opt');
+  pao2opt.textContent = src === 'abg' ? 'ABG' : 'VBG';
+  pao2opt.style.color = src === 'vbg' ? 'var(--amber)' : '';
+}
+
+function resetABG() {
+  ['ph','pco2','hco3','pao2','fio2','lactate'].forEach(id => {
+    document.getElementById('inp-' + id).value = '';
+  });
+  document.getElementById('abgResults').className = 'abg-results';
+  document.getElementById('abgResults').innerHTML = '';
+}
+
+function interpretABG() {
+  const ph     = parseFloat(document.getElementById('inp-ph').value);
+  const pco2   = parseFloat(document.getElementById('inp-pco2').value);
+  const hco3   = parseFloat(document.getElementById('inp-hco3').value);
+  const pao2   = parseFloat(document.getElementById('inp-pao2').value);
+  const fio2   = parseFloat(document.getElementById('inp-fio2').value);
+  const lact   = parseFloat(document.getElementById('inp-lactate').value);
+  const isVBG  = abgSource === 'vbg';
+
+  if (isNaN(ph) || isNaN(pco2) || isNaN(hco3)) {
+    alert('pH, PaCO₂, and HCO₃⁻ are required.');
+    return;
+  }
+
+  const cards = [];
+
+  // ── STEP 1: pH assessment ──
+  let phStatus, phFinding, phDetail;
+  if      (ph < 7.20)  { phStatus = 'alert';  phFinding = 'Severe Acidemia'; phDetail = 'pH < 7.20 — critical threshold. Life-threatening. Requires immediate clinical correlation and intervention planning.'; }
+  else if (ph < 7.35)  { phStatus = 'warn';   phFinding = 'Acidemia'; phDetail = `pH ${ph.toFixed(2)} is below normal range (7.35–7.45). Primary process is acidotic.`; }
+  else if (ph <= 7.45) { phStatus = 'normal'; phFinding = 'Normal pH'; phDetail = `pH ${ph.toFixed(2)} is within normal range (7.35–7.45). May still represent a compensated disorder or mixed process.`; }
+  else if (ph <= 7.55) { phStatus = 'warn';   phFinding = 'Alkalemia'; phDetail = `pH ${ph.toFixed(2)} is above normal range (7.35–7.45). Primary process is alkalotic.`; }
+  else                 { phStatus = 'alert';  phFinding = 'Severe Alkalemia'; phDetail = 'pH > 7.55 — significant alkalemia. Risk of cardiac arrhythmia, neuromuscular irritability.'; }
+  cards.push({ step:'01', title:'pH Assessment', value:`${ph.toFixed(2)}`, finding: phFinding, detail: phDetail, status: phStatus, formula: 'Normal: 7.35 – 7.45' });
+
+  // ── STEP 2: Primary disorder ──
+  let primary, primDetail, primFormula = '';
+  const isAcidemia   = ph < 7.35;
+  const isAlkalemia  = ph > 7.45;
+  const respAcid  = pco2 > 45;
+  const respAlk   = pco2 < 35;
+  const metAcid   = hco3 < 22;
+  const metAlk    = hco3 > 26;
+
+  if (isAcidemia) {
+    if (respAcid && !metAcid)        { primary = 'Respiratory Acidosis'; primDetail = `Elevated PaCO₂ (${pco2} mmHg) with acidemia. Hypoventilation or CO₂ retention. HCO₃⁻ ${hco3} mEq/L — assess for renal compensation.`; }
+    else if (metAcid && !respAcid)   { primary = 'Metabolic Acidosis'; primDetail = `Low HCO₃⁻ (${hco3} mEq/L) with acidemia. Loss of bicarbonate or addition of acid. PaCO₂ ${pco2} mmHg — assess for respiratory compensation.`; }
+    else if (respAcid && metAcid)    { primary = 'Mixed: Resp + Met Acidosis'; primDetail = `Both PaCO₂ (${pco2}) and HCO₃⁻ (${hco3}) are driving acidosis. No compensation evident — both processes co-existing. High morbidity.`; }
+    else                              { primary = 'Acidemia — Unclear Primary'; primDetail = 'pH < 7.35 but PaCO₂ and HCO₃⁻ are not clearly abnormal. Recheck values. Consider borderline mixed disorder.'; }
+  } else if (isAlkalemia) {
+    if (respAlk && !metAlk)          { primary = 'Respiratory Alkalosis'; primDetail = `Low PaCO₂ (${pco2} mmHg) with alkalemia. Hyperventilation. HCO₃⁻ ${hco3} mEq/L — assess for renal compensation.`; }
+    else if (metAlk && !respAlk)     { primary = 'Metabolic Alkalosis'; primDetail = `Elevated HCO₃⁻ (${hco3} mEq/L) with alkalemia. Loss of acid or gain of base. PaCO₂ ${pco2} mmHg — assess respiratory compensation.`; }
+    else if (respAlk && metAlk)      { primary = 'Mixed: Resp + Met Alkalosis'; primDetail = `Both processes driving alkalosis. PaCO₂ ${pco2}, HCO₃⁻ ${hco3}. Common in hepatic failure + diuretic use.`; }
+    else                              { primary = 'Alkalemia — Unclear Primary'; primDetail = 'pH > 7.45 but primary driver not clearly identifiable from values provided. Consider borderline presentation.'; }
+  } else {
+    // Normal pH — compensated or mixed
+    if (respAcid && metAlk)          { primary = 'Compensated Resp Acidosis (or Mixed)'; primDetail = `Normal pH with elevated PaCO₂ (${pco2}) and elevated HCO₃⁻ (${hco3}). Chronic CO₂ retention with renal compensation, OR mixed resp acidosis + met alkalosis.`; }
+    else if (respAlk && metAcid)     { primary = 'Compensated Resp Alkalosis (or Mixed)'; primDetail = `Normal pH with low PaCO₂ (${pco2}) and low HCO₃⁻ (${hco3}). Chronic hyperventilation with renal compensation, OR mixed resp alkalosis + met acidosis.`; }
+    else if (metAcid && metAlk)      { primary = 'Mixed Metabolic Disorder'; primDetail = 'HCO₃⁻ pattern inconsistent — consider measurement or clinical context issue.'; }
+    else                              { primary = 'No Clear Disorder'; primDetail = 'All primary values within normal range. May represent a normal blood gas, or a perfectly balanced mixed disorder. Correlate clinically.'; }
+  }
+  cards.push({ step:'02', title:'Primary Disorder', value: primary.includes('Mixed') ? 'Mixed' : (isAcidemia ? 'Acidosis' : isAlkalemia ? 'Alkalosis' : 'Normal'), finding: primary, detail: primDetail, status: primary.includes('Severe') || primary.includes('Mixed') ? 'alert' : (isAcidemia||isAlkalemia) ? 'warn' : 'normal', formula: primFormula });
+
+  // ── STEP 3: Compensation check ──
+  let compFinding, compDetail, compFormula, compStatus;
+  if (isAcidemia && respAcid && !metAcid) {
+    // Resp acidosis — expected HCO3 compensation
+    const acuteExp = 24 + (pco2 - 40) * 0.1;
+    const chronExp = 24 + (pco2 - 40) * 0.35;
+    compFormula = `Acute: HCO₃ = 24 + (PaCO₂−40)×0.1 = ${acuteExp.toFixed(1)}\nChronic: HCO₃ = 24 + (PaCO₂−40)×0.35 = ${chronExp.toFixed(1)}`;
+    if (Math.abs(hco3 - acuteExp) < 3)      { compFinding = 'Acute Respiratory Acidosis'; compDetail = `HCO₃⁻ ${hco3} consistent with acute compensation (expected ~${acuteExp.toFixed(1)}). No chronic renal adaptation yet.`; compStatus = 'info'; }
+    else if (Math.abs(hco3 - chronExp) < 4) { compFinding = 'Chronic Respiratory Acidosis'; compDetail = `HCO₃⁻ ${hco3} consistent with chronic compensation (expected ~${chronExp.toFixed(1)}). Renal retention of bicarbonate evident.`; compStatus = 'info'; }
+    else if (hco3 < acuteExp - 3)           { compFinding = 'Superimposed Metabolic Acidosis'; compDetail = `HCO₃⁻ ${hco3} lower than expected for compensation (${acuteExp.toFixed(1)}–${chronExp.toFixed(1)}). Additional metabolic acid process present.`; compStatus = 'alert'; }
+    else                                     { compFinding = 'Superimposed Metabolic Alkalosis'; compDetail = `HCO₃⁻ ${hco3} higher than expected for chronic compensation (~${chronExp.toFixed(1)}). Additional metabolic alkalosis present.`; compStatus = 'warn'; }
+  } else if (isAcidemia && metAcid && !respAcid) {
+    // Met acidosis — expected PaCO2 compensation (Winter's formula)
+    const expPco2 = (1.5 * hco3) + 8;
+    compFormula = `Winter's: PaCO₂ = (1.5 × HCO₃) + 8 ± 2 = ${expPco2.toFixed(1)} ± 2`;
+    if (Math.abs(pco2 - expPco2) <= 2) { compFinding = 'Appropriate Respiratory Compensation'; compDetail = `PaCO₂ ${pco2} matches Winter's formula (${(expPco2-2).toFixed(0)}–${(expPco2+2).toFixed(0)} expected). Pure metabolic acidosis.`; compStatus = 'normal'; }
+    else if (pco2 > expPco2 + 2)       { compFinding = 'Inadequate Respiratory Compensation'; compDetail = `PaCO₂ ${pco2} higher than expected (${expPco2.toFixed(1)}). Superimposed respiratory acidosis — inadequate ventilatory response.`; compStatus = 'alert'; }
+    else                                { compFinding = 'Superimposed Respiratory Alkalosis'; compDetail = `PaCO₂ ${pco2} lower than expected (${expPco2.toFixed(1)}). Superimposed respiratory alkalosis in addition to metabolic acidosis.`; compStatus = 'warn'; }
+  } else if (isAlkalemia && respAlk && !metAlk) {
+    const acuteExp = 24 - (40 - pco2) * 0.2;
+    const chronExp = 24 - (40 - pco2) * 0.5;
+    compFormula = `Acute: HCO₃ = 24 − (40−PaCO₂)×0.2 = ${acuteExp.toFixed(1)}\nChronic: HCO₃ = 24 − (40−PaCO₂)×0.5 = ${chronExp.toFixed(1)}`;
+    if (Math.abs(hco3 - acuteExp) < 3)      { compFinding = 'Acute Respiratory Alkalosis'; compDetail = `HCO₃⁻ ${hco3} consistent with acute compensation (~${acuteExp.toFixed(1)} expected).`; compStatus = 'info'; }
+    else if (Math.abs(hco3 - chronExp) < 4) { compFinding = 'Chronic Respiratory Alkalosis'; compDetail = `HCO₃⁻ ${hco3} consistent with chronic compensation (~${chronExp.toFixed(1)} expected). Sustained hyperventilation.`; compStatus = 'info'; }
+    else if (hco3 > acuteExp + 3)           { compFinding = 'Superimposed Metabolic Alkalosis'; compDetail = `HCO₃⁻ ${hco3} higher than expected. Concurrent metabolic alkalosis.`; compStatus = 'warn'; }
+    else                                     { compFinding = 'Superimposed Metabolic Acidosis'; compDetail = `HCO₃⁻ ${hco3} lower than expected for compensation. Concurrent metabolic acidosis.`; compStatus = 'alert'; }
+  } else if (isAlkalemia && metAlk && !respAlk) {
+    const expPco2 = 40 + (hco3 - 24) * 0.7;
+    compFormula = `Expected PaCO₂ = 40 + (HCO₃−24) × 0.7 = ${expPco2.toFixed(1)} (range ±5)`;
+    if (Math.abs(pco2 - expPco2) <= 5) { compFinding = 'Appropriate Respiratory Compensation'; compDetail = `PaCO₂ ${pco2} matches expected compensation (~${expPco2.toFixed(1)}). Pure metabolic alkalosis.`; compStatus = 'normal'; }
+    else if (pco2 < expPco2 - 5)       { compFinding = 'Superimposed Respiratory Alkalosis'; compDetail = `PaCO₂ ${pco2} lower than expected (${expPco2.toFixed(1)}). Concurrent respiratory alkalosis.`; compStatus = 'warn'; }
+    else                                { compFinding = 'Inadequate Respiratory Compensation'; compDetail = `PaCO₂ ${pco2} higher than expected. Respiratory compensation is blunted.`; compStatus = 'warn'; }
+  } else {
+    compFinding = 'See primary disorder'; compDetail = 'Compensation assessment applies to simple acid-base disorders. For mixed disorders, individual component assessment is required.'; compStatus = 'info';
+    compFormula = '';
+  }
+  cards.push({ step:'03', title:'Compensation', value:'', finding: compFinding, detail: compDetail, status: compStatus, formula: compFormula });
+
+  // ── STEP 4: Metabolic acidosis → Anion Gap (if applicable) ──
+  if (metAcid) {
+    cards.push({
+      step:'04', title:'Anion Gap Assessment', value:'Required',
+      finding: 'Calculate Anion Gap',
+      detail: 'Anion Gap = Na⁺ − (Cl⁻ + HCO₃⁻). Not calculable here without Na⁺ and Cl⁻ — obtain from BMP/CMP. Normal AG: 8–12 mEq/L (albumin-corrected). Elevated AG (>12): MUDPILES — Methanol, Uremia, DKA, Propylene glycol, Isoniazid/Infection, Lactic acidosis, Ethylene glycol, Salicylates. Normal AG: HARDDUP — Hyperalimentation, Acetazolamide, RTA, Diarrhea, Ureteroenteric fistula, Pancreatic fistula.',
+      status: 'warn',
+      formula: 'AG = Na⁺ − (Cl⁻ + HCO₃⁻)  |  Corrected AG = AG + 2.5×(4.0 − albumin g/dL)\nIf elevated AG: check delta-delta = (AG−12)/(24−HCO₃) — >2 suggests concurrent met alkalosis, <1 suggests concurrent normal-AG acidosis'
+    });
+  }
+
+  // ── STEP 5: Oxygenation (ABG only, if PaO2 and FiO2 available) ──
+  if (!isVBG && !isNaN(pao2)) {
+    let oxFinding, oxDetail, oxStatus;
+    if (!isNaN(fio2) && fio2 >= 0.21) {
+      const pf = pao2 / fio2;
+      const aa = (713 * fio2) - (pco2 / 0.8) - pao2;
+      oxStatus = pf >= 300 ? 'normal' : pf >= 200 ? 'warn' : 'alert';
+      oxFinding = pf >= 400 ? `Normal Oxygenation (P/F ${Math.round(pf)})` : pf >= 300 ? `Mildly Reduced (P/F ${Math.round(pf)})` : pf >= 200 ? `Mild ARDS (P/F ${Math.round(pf)})` : pf >= 100 ? `Moderate ARDS (P/F ${Math.round(pf)})` : `Severe ARDS (P/F ${Math.round(pf)})`;
+      oxDetail = `P/F ratio ${Math.round(pf)} on FiO₂ ${(fio2*100).toFixed(0)}%. A-a gradient: ${aa.toFixed(0)} mmHg (normal < ${Math.round(2.5 + 0.25 * 40)} at age ~40; increases with age and FiO₂). ARDS Berlin: mild ≥200, moderate 100–200, severe <100 — all require PEEP ≥5 cmH₂O.`;
+      cards.push({ step:'05', title:'Oxygenation', value:`P/F ${Math.round(pf)}`, finding: oxFinding, detail: oxDetail, status: oxStatus, formula: `P/F = PaO₂ ÷ FiO₂ = ${pao2} ÷ ${fio2} = ${Math.round(pf)}\nA-a gradient = (713×FiO₂) − (PaCO₂÷0.8) − PaO₂ = ${aa.toFixed(0)} mmHg` });
+    } else {
+      const ra_normal = (pao2 >= 80 && pao2 <= 100);
+      oxFinding = pao2 >= 80 ? 'PaO₂ Normal Range' : pao2 >= 60 ? 'Mild Hypoxemia' : pao2 >= 40 ? 'Moderate Hypoxemia' : 'Severe Hypoxemia';
+      oxStatus = pao2 >= 80 ? 'normal' : pao2 >= 60 ? 'warn' : 'alert';
+      oxDetail = `PaO₂ ${pao2} mmHg. FiO₂ not provided — P/F ratio and A-a gradient cannot be calculated. For full oxygenation assessment, include FiO₂.`;
+      cards.push({ step:'05', title:'Oxygenation', value:`PaO₂ ${pao2}`, finding: oxFinding, detail: oxDetail, status: oxStatus, formula: 'Enter FiO₂ to calculate P/F ratio and A-a gradient' });
+    }
+  } else if (isVBG && !isNaN(pao2)) {
+    cards.push({ step:'05', title:'Venous PO₂', value:`PvO₂ ${pao2}`, finding: 'Venous Oxygen Tension', detail: `PvO₂ ${pao2} mmHg reflects mixed venous saturation, not arterial oxygenation. Normal PvO₂: 35–45 mmHg. Low PvO₂ (<30) suggests increased oxygen extraction — possible poor perfusion, high metabolic demand, or severe anemia. PvO₂ cannot substitute for PaO₂ in oxygenation assessment.`, status: pao2 < 30 ? 'alert' : pao2 < 35 ? 'warn' : 'info', formula: 'PvO₂ ≠ PaO₂. ABG required for oxygenation index and P/F ratio.' });
+  }
+
+  // ── STEP 6: Lactate (if provided) ──
+  if (!isNaN(lact)) {
+    let lacFinding, lacDetail, lacStatus;
+    if      (lact < 2.0) { lacFinding = 'Normal Lactate'; lacDetail = `Lactate ${lact.toFixed(1)} mmol/L — within normal range (<2.0). Does not exclude tissue hypoperfusion in context of recent resuscitation.`; lacStatus = 'normal'; }
+    else if (lact < 4.0) { lacFinding = 'Elevated Lactate — Type A or B'; lacDetail = `Lactate ${lact.toFixed(1)} mmol/L (2–4 range). Warrants investigation. Type A: tissue hypoperfusion (sepsis, cardiogenic shock, mesenteric ischemia). Type B: hepatic failure, thiamine deficiency, medications (metformin, linezolid, propofol infusion syndrome), malignancy.`; lacStatus = 'warn'; }
+    else                 { lacFinding = 'Severe Lactic Acidosis'; lacDetail = `Lactate ${lact.toFixed(1)} mmol/L — severe elevation (≥4.0). Associated with significantly increased mortality in sepsis (Sepsis-3 criteria). Requires urgent identification and treatment of underlying cause. Lactate clearance (target >10% per 2h) is a resuscitation endpoint.`; lacStatus = 'alert'; }
+    cards.push({ step: metAcid ? '06' : '05', title:'Lactate', value:`${lact.toFixed(1)} mmol/L`, finding: lacFinding, detail: lacDetail, status: lacStatus, formula: 'Normal: <2.0 mmol/L  |  Sepsis concern: ≥2.0  |  High risk: ≥4.0 (Sepsis-3 threshold)' });
+  }
+
+  // ── RENDER ──
+  const container = document.getElementById('abgResults');
+  container.innerHTML = cards.map(c => `
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-step step-${c.status}">${c.step}</div>
+        <div class="result-title">${c.title}</div>
+        ${c.value ? `<div class="result-value">${c.value}</div>` : ''}
+      </div>
+      <div class="result-body">
+        <div class="result-finding status-${c.status}">${c.finding}</div>
+        <div class="result-detail">${c.detail}</div>
+        ${c.formula ? `<div class="result-formula">${c.formula}</div>` : ''}
+      </div>
+    </div>`).join('');
+  container.className = 'abg-results show';
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ════════════════════════════════════════════════════
+// V500 MODE DECISION TREE
+// ════════════════════════════════════════════════════
+const TREE = {
+  start: {
+    step: 'Step 1 of 5',
+    q: 'Is the patient intubated and requiring full ventilatory support?',
+    context: 'Consider: recent intubation, absence of spontaneous breathing, NMB use, severe ARDS (P/F <100), or patient unable to trigger.',
+    options: [
+      { label: 'Yes — full support needed', sub: 'No or minimal spontaneous effort. Requires mandatory breath delivery.', icon: '⚠', next: 'full_support' },
+      { label: 'Partial support / weaning', sub: 'Patient has reliable spontaneous effort. Wants to reduce mandatory rate or try pressure support.', icon: '↑', next: 'partial_support' },
+    ]
+  },
+  full_support: {
+    step: 'Step 2 of 5',
+    q: 'Is there significant lung injury or ARDS physiology?',
+    context: 'Indicators: P/F <300, bilateral infiltrates, driving pressure >16 cmH₂O, Crs <40 mL/cmH₂O, PEEP requirement >8 cmH₂O.',
+    options: [
+      { label: 'Yes — lung protective strategy needed', sub: 'ARDS, pulmonary edema, bilateral pneumonia, or high driving pressure concern.', icon: '🫁', next: 'lung_protect' },
+      { label: 'No — normal or near-normal lungs', sub: 'Intubated for airway protection, post-op, neurologic, or neuromuscular reason.', icon: '✓', next: 'normal_lungs' },
+    ]
+  },
+  lung_protect: {
+    step: 'Step 3 of 5',
+    q: 'Is the patient able to trigger some breaths, or fully passive?',
+    context: 'High patient drive in ARDS can cause Patient-Self Inflicted Lung Injury (P-SILI). Assess: RASS, esophageal pressure swings, dyssynchrony type.',
+    options: [
+      { label: 'Fully passive / NMB / RASS −4 to −5', sub: 'No spontaneous effort. Complete ventilator control required.', icon: '●', next: 'rec_pcac_passive' },
+      { label: 'Some spontaneous effort present', sub: 'Patient triggers breaths. Risk of dyssynchrony if mode mismatched.', icon: '◎', next: 'rec_prvc_active' },
+    ]
+  },
+  rec_pcac_passive: {
+    recommendation: true,
+    mode: 'PC-AC (Pressure Control – Assist/Control)',
+    v500name: 'PC-AC (Pressure Control on V500)',
+    color: 'var(--red)',
+    icon: '⊕',
+    rationale: 'In a fully passive ARDS patient, pressure-controlled mandatory delivery provides a consistent pressure target with flow that adapts to lung mechanics. Combined with lung-protective targets (VT 4–6 mL/kg IBW, Pplat <30, ΔP 10–16), this approach minimizes VILI while allowing precise control. AutoFlow can be enabled to add volume targeting if desired.',
+    settings: [
+      { key: 'Mode', val: 'PC-AC' },
+      { key: 'PC level', val: 'Titrate to achieve VTe 4–6 mL/kg IBW' },
+      { key: 'RR', val: '20–30 breaths/min — titrate to pH ≥7.20' },
+      { key: 'PEEP', val: 'Per ARDSnet table or driving pressure optimization' },
+      { key: 'FiO₂', val: 'Wean to lowest effective; target SpO₂ 92–96%' },
+      { key: 'Ti', val: '0.8–1.0s; adjust to avoid breath stacking' },
+      { key: 'AutoFlow', val: 'Optional — adds volume guarantee to pressure control' },
+    ],
+    caveat: 'Confirm lung-protective targets every shift: VT 4–6 mL/kg IBW, Pplat <30, Driving Pressure 10–16 cmH₂O. In severe ARDS (P/F <150), consider proning ≥16h/day. Passive ventilation does not eliminate VILI risk — pressure and volume targets remain mandatory.',
+  },
+  rec_prvc_active: {
+    recommendation: true,
+    mode: 'PC-AC with AutoFlow (PRVC equivalent)',
+    v500name: 'PC-AC + AutoFlow on V500',
+    color: 'var(--amber)',
+    icon: '◎',
+    rationale: 'In an ARDS patient with spontaneous effort, volume-targeted pressure control (AutoFlow on the V500) provides consistent VT delivery while adapting pressure to varying compliance and drive. This limits volutrauma even as patient effort varies. If high respiratory drive is causing dyssynchrony or P-SILI (Pes swings >15 cmH₂O), consider deepening sedation, adding analgesia, or short-term NMB — then reassess.',
+    settings: [
+      { key: 'Mode', val: 'PC-AC + AutoFlow enabled' },
+      { key: 'Target VT', val: '4–6 mL/kg IBW (AutoFlow adjusts PC level breath-to-breath)' },
+      { key: 'RR', val: 'Set backup rate 20–25; fTotal will be higher if patient triggers' },
+      { key: 'PEEP', val: 'Per ARDSnet or driving pressure optimization' },
+      { key: 'FiO₂', val: 'Wean to lowest effective; target SpO₂ 92–96%' },
+      { key: 'Trigger', val: 'Flow trigger 2–3 L/min; check for missed triggers and auto-triggering' },
+    ],
+    caveat: 'Monitor for dyssynchrony closely: flow starvation, double-triggering, and missed triggers all indicate mode-patient mismatch. If high drive is causing stacking despite settings optimization, escalate sedation/analgesia before accepting double-triggered breaths — each stacked breath delivers 2× VT.',
+  },
+  normal_lungs: {
+    step: 'Step 3 of 5',
+    q: 'What is the primary reason for intubation?',
+    context: 'The mode strategy for airway protection differs from post-operative management or neuromuscular failure.',
+    options: [
+      { label: 'Airway protection / neurologic', sub: 'Altered mental status, absent gag, stroke, TBI, seizure, OD.', icon: '🧠', next: 'rec_vcac' },
+      { label: 'Post-operative', sub: 'Expected short intubation. Normal lung mechanics. Ready to wean soon.', icon: '⚕', next: 'rec_vcac_postop' },
+      { label: 'Neuromuscular failure', sub: 'GBS, MG, ALS, high cervical SCI — drive present but muscle weakness.', icon: '⚡', next: 'rec_nmd' },
+    ]
+  },
+  rec_vcac: {
+    recommendation: true,
+    mode: 'VC-AC (Volume Control – Assist/Control)',
+    v500name: 'VC-AC on V500',
+    color: 'var(--cyan)',
+    icon: '⊙',
+    rationale: 'For patients intubated primarily for airway protection with normal lung mechanics, volume-controlled AC provides consistent tidal volume delivery with the simplest parameter set. Lung-protective targets still apply — do not default to 10–12 mL/kg just because lungs appear normal. Many critically ill patients develop secondary lung injury.',
+    settings: [
+      { key: 'Mode', val: 'VC-AC' },
+      { key: 'VT', val: '6–8 mL/kg IBW (lung protective even in normal lungs)' },
+      { key: 'RR', val: '14–20 breaths/min; titrate to PaCO₂/pH goal' },
+      { key: 'PEEP', val: '5 cmH₂O minimum; adjust per clinical need' },
+      { key: 'FiO₂', val: 'Lowest effective; SpO₂ 92–96%' },
+      { key: 'Flow', val: '60 L/min initial; increase if flow starvation seen on waveform' },
+      { key: 'Trigger', val: 'Flow 2 L/min — assess fTotal vs fSet each assessment' },
+    ],
+    caveat: 'Watch for flow starvation (concave pressure-time waveform) in awake/agitated patients — may require flow increase or mode transition to PC-AC/PSV. Reassess lung-protective targets daily — Pplat and driving pressure should be obtained even in "normal lung" patients, particularly if clinical status changes.',
+  },
+  rec_vcac_postop: {
+    recommendation: true,
+    mode: 'VC-AC → PSV-CPAP (Wean-Ready Strategy)',
+    v500name: 'VC-AC transitioning to PSV on V500',
+    color: 'var(--teal)',
+    icon: '↑',
+    rationale: 'Post-operative patients with normal lungs and recovering from anesthesia are often the most appropriate candidates for early liberation. Begin with VC-AC at lung-protective settings. As sedation clears and drive returns, transition to PSV-CPAP and assess for extubation criteria (P/F ≥200, PEEP ≤8, hemodynamic stability, adequate drive). Daily SBT should begin as soon as criteria are met.',
+    settings: [
+      { key: 'Initial mode', val: 'VC-AC, VT 6–8 mL/kg IBW, RR 14–18' },
+      { key: 'Transition to', val: 'PSV + CPAP once awake and triggering reliably' },
+      { key: 'PS level', val: '8–12 cmH₂O (titrate to VT 6–8 mL/kg IBW and RR <25)' },
+      { key: 'CPAP/PEEP', val: '5–8 cmH₂O' },
+      { key: 'FiO₂', val: 'Wean rapidly in post-op; target SpO₂ 94–98%' },
+      { key: 'SBT', val: 'PS 5 / PEEP 5 × 30–120 min once extubation criteria met' },
+    ],
+    caveat: 'Assess for extubation readiness every shift — do not await a physician order to initiate the SBT screen. If the patient passes SBT, communicate directly to the team. Post-operative patients who remain intubated >24h have substantially increased complication risk.',
+  },
+  rec_nmd: {
+    recommendation: true,
+    mode: 'VC-AC with Backup / PC-AC (NMD Strategy)',
+    v500name: 'VC-AC or PC-AC with guaranteed rate on V500',
+    color: 'var(--violet)',
+    icon: '⚡',
+    rationale: 'In neuromuscular failure, respiratory drive may be present but effort is insufficient to sustain ventilation. A mandatory mode with a reliable backup rate is essential. Volume control is preferred to ensure consistent VT delivery despite variable effort. Avoid PSV alone — if drive is intermittent, apnea is possible. Weaning should be gradual with serial assessments of NIF (>-20 cmH₂O) and VC (>10–15 mL/kg).',
+    settings: [
+      { key: 'Mode', val: 'VC-AC (mandatory backup rate essential)' },
+      { key: 'VT', val: '6–8 mL/kg IBW (avoid volutrauma even with normal lungs)' },
+      { key: 'RR', val: 'Set to ensure full support; fTotal may not exceed fSet if drive is poor' },
+      { key: 'PEEP', val: '5 cmH₂O; increase if secretion retention causes atelectasis' },
+      { key: 'Weaning triggers', val: 'NIF > −20 cmH₂O, VC > 10–15 mL/kg, sustained effort' },
+      { key: 'Secretions', val: 'Aggressive secretion management — cough peak flow critically impaired' },
+    ],
+    caveat: 'Weaning neuromuscular failure differs from ARDS weaning — do not use standard SBT criteria. NIF and vital capacity are more relevant endpoints. In GBS, clinical trajectory (improving vs. plateau) is the strongest predictor of ventilator liberation timeline.',
+  },
+  partial_support: {
+    step: 'Step 2 of 5',
+    q: 'What is the primary goal right now?',
+    context: 'Partial support serves different purposes: active weaning, long-term stable support, or management of complex synchrony.',
+    options: [
+      { label: 'Active weaning toward extubation', sub: 'Patient improving. Working toward SBT and liberation.', icon: '↑', next: 'weaning' },
+      { label: 'Stable partial support', sub: 'Chronic ventilatordependence, tracheostomy, or not yet ready to wean.', icon: '—', next: 'stable_partial' },
+    ]
+  },
+  weaning: {
+    step: 'Step 3 of 5',
+    q: 'Has the patient passed or is being assessed for SBT readiness?',
+    context: 'SBT readiness criteria: FiO₂ ≤0.40, SpO₂ ≥92%, PEEP ≤8, hemodynamic stability, adequate drive, manageable secretions, tolerated SAT.',
+    options: [
+      { label: 'Yes — ready for SBT or currently on PSV', sub: 'Meets weaning readiness criteria. Conducting or preparing spontaneous breathing trial.', icon: '✓', next: 'rec_psv_sbt' },
+      { label: 'Not yet — still reducing support', sub: 'Improving but not yet at SBT thresholds. Titrating settings toward readiness.', icon: '↓', next: 'rec_psv_wean' },
+    ]
+  },
+  rec_psv_sbt: {
+    recommendation: true,
+    mode: 'PSV-CPAP — SBT Mode',
+    v500name: 'PSV + CPAP on V500 (SBT)',
+    color: 'var(--green)',
+    icon: '✓',
+    rationale: 'For SBT, PSV 5 cmH₂O + CPAP 5 cmH₂O (or T-piece equivalent) is the standard. This minimal support tests the patient\'s ability to sustain spontaneous ventilation with minimal mechanical assistance. Duration: 30–120 minutes. The V500 will display fTotal, VTe, and RR in real-time — monitor for failure criteria throughout.',
+    settings: [
+      { key: 'Mode', val: 'PSV + CPAP' },
+      { key: 'Pressure Support', val: '5 cmH₂O (SBT standard)' },
+      { key: 'CPAP/PEEP', val: '5 cmH₂O' },
+      { key: 'FiO₂', val: 'As needed; should already be ≤0.40 to meet readiness criteria' },
+      { key: 'Duration', val: '30–120 minutes; reassess at 30 min' },
+      { key: 'Failure criteria', val: 'RR >35, SpO₂ <90%, HR ±20%, diaphoresis, accessory muscles, agitation' },
+      { key: 'Apnea alarm', val: 'Ensure active — mandatory during PSV' },
+    ],
+    caveat: 'SBT success does not guarantee extubation success (~15–20% fail post-extubation). Assess cuff leak for stridor risk in high-risk patients. Plan for post-extubation support: HFNC or NIV on standby for patients at high risk of re-intubation. Communicate SBT result directly to the team — do not wait for rounds.',
+  },
+  rec_psv_wean: {
+    recommendation: true,
+    mode: 'PSV — Active Wean',
+    v500name: 'PSV + CPAP on V500 (weaning)',
+    color: 'var(--teal)',
+    icon: '↓',
+    rationale: 'During active weaning from partial support, PSV is titrated progressively downward as the patient tolerates. The endpoint of each step is hemodynamic stability, RR <30, VT 5–8 mL/kg IBW, and patient comfort. Each setting change should be documented with rationale and follow-up assessment. The target is PSV 5 / PEEP 5 — at which point an SBT should be formally conducted.',
+    settings: [
+      { key: 'Mode', val: 'PSV + CPAP' },
+      { key: 'Wean PS by', val: '2–4 cmH₂O increments per tolerance' },
+      { key: 'Current PS target', val: 'Work toward PS 8 → 6 → 5; reassess each step' },
+      { key: 'PEEP', val: '5–8 cmH₂O; wean to 5 before attempting SBT' },
+      { key: 'Cycle criterion', val: 'Adjust per patient — COPD: 40–60%; ARDS: 10–25%' },
+      { key: 'Monitor', val: 'RR, VTe, fTotal — document response to each PS reduction' },
+    ],
+    caveat: 'PSV weaning is patient-driven — titrate to the individual. Do not follow a rigid schedule. A patient who tolerates PS 12 → 10 → 8 in one shift may fatigue at PS 6 the next day depending on sleep, sedation, infection, or metabolic state. Reassess daily and communicate SBT readiness to the team proactively.',
+  },
+  stable_partial: {
+    step: 'Step 3 of 5',
+    q: 'Does the patient have a tracheostomy and stable chronic ventilator dependence?',
+    context: 'Stable partial support goals differ: minimize work of breathing, prevent atelectasis, optimize secretion clearance — not necessarily progressing to extubation.',
+    options: [
+      { label: 'Yes — tracheostomy, chronic dependence', sub: 'Long-term ventilation. Goal is comfort, stability, and rehabilitation if possible.', icon: '○', next: 'rec_trach' },
+      { label: 'No — acute patient, ETT, not yet ready', sub: 'Still in acute phase. Goal is safe support while optimizing readiness.', icon: '⊙', next: 'rec_ac_stable' },
+    ]
+  },
+  rec_trach: {
+    recommendation: true,
+    mode: 'PSV-CPAP or VC-AC (Tracheostomy/Long-Term)',
+    v500name: 'PSV or VC-AC via trach on V500',
+    color: 'var(--violet)',
+    icon: '○',
+    rationale: 'In tracheostomy-dependent patients, mode selection should minimize WOB while allowing maximum spontaneous breathing to prevent VIDD. PSV is preferred if drive is reliable and effort is sufficient. VC-AC with low mandatory rate provides a safety net. Focus shifts to: secretion management, speaking valve trials (Passy Muir), progressive mobility, nutrition optimization, and respiratory muscle training.',
+    settings: [
+      { key: 'Preferred mode', val: 'PSV if drive reliable; VC-AC backup if intermittent apnea' },
+      { key: 'PS level', val: 'Titrate to WOB comfort — typically 8–16 cmH₂O in early trach' },
+      { key: 'PEEP', val: '5 cmH₂O unless higher PEEP required for oxygenation' },
+      { key: 'Trach cuff', val: 'Deflate during speaking valve trials with RT supervision' },
+      { key: 'Off-vent trials', val: 'Initiate Passey-Muir / trach collar trials per PT/OT plan' },
+      { key: 'Secretions', val: 'Reassess humidification daily — heated preferred for trach patients' },
+    ],
+    caveat: 'Tracheostomy patients on long-term ventilation are at high risk of VIDD from over-sedation and excessive mandatory breathing. Prioritize spontaneous breathing with appropriate support over fully controlled modes unless clinically indicated.',
+  },
+  rec_ac_stable: {
+    recommendation: true,
+    mode: 'PC-AC or VC-AC — Stable Acute Support',
+    v500name: 'PC-AC or VC-AC on V500 (stabilization phase)',
+    color: 'var(--cyan)',
+    icon: '⊙',
+    rationale: 'In the acute patient who has spontaneous effort but is not yet ready for SBT (e.g., PEEP still >10, FiO₂ still >0.50, sedation still being weaned), maintain a mandatory mode that provides full support with flow-triggered assist. PC-AC is preferred if compliance is variable. VC-AC is preferred if you want consistent VT tracking. AutoFlow bridges both. Focus on optimization: sedation-analgesia bundle, SAT/SBT readiness checks every shift.',
+    settings: [
+      { key: 'Mode', val: 'PC-AC (preferred) or VC-AC + AutoFlow' },
+      { key: 'VT target', val: '6 mL/kg IBW — maintain lung protection throughout acute phase' },
+      { key: 'PEEP', val: 'Per ARDSnet table or clinical assessment' },
+      { key: 'Sedation', val: 'Target RASS −1 to −2; daily SAT; avoid deep sedation unless indicated' },
+      { key: 'Reassess', val: 'Check SBT readiness criteria every shift, not just daily rounds' },
+    ],
+    caveat: 'The most common cause of prolonged ventilation is not clinical necessity — it is failure to recognize or communicate readiness. Check weaning criteria at the start of every shift. If criteria are met, do not wait for a physician to suggest the SBT.',
+  },
+};
+
+let treeHistory = [];
+let treeCurrentNode = 'start';
+
+function renderTreeNode(nodeId) {
+  const node = TREE[nodeId];
+  if (!node) return;
+  treeCurrentNode = nodeId;
+  treeHistory.push(nodeId);
+
+  const maxDepth = 5;
+  const progress = Math.min((treeHistory.length / maxDepth) * 100, 100);
+  document.getElementById('treeProgressFill').style.width = progress + '%';
+
+  // Breadcrumb
+  const bcEl = document.getElementById('treeBreadcrumb');
+  const labels = treeHistory.slice(0,-1).map(id => {
+    const n = TREE[id];
+    if (!n) return '';
+    if (n.recommendation) return `<span class="bc-item">${n.mode ? n.mode.split('(')[0].trim() : id}</span>`;
+    return `<span class="bc-item">${n.q ? n.q.split('?')[0].slice(0,28)+'…' : id}</span>`;
+  }).filter(Boolean);
+  bcEl.innerHTML = labels.length > 0 ? labels.join('<span class="bc-arrow">›</span>') : '';
+
+  const content = document.getElementById('treeContent');
+
+  if (node.recommendation) {
+    content.innerHTML = `
+      <div class="tree-node active">
+        ${treeHistory.length > 1 ? `<button class="tree-back-btn" onclick="treeBack()">← Back</button>` : ''}
+        <div class="rec-card">
+          <div class="rec-header">
+            <div class="rec-icon">${node.icon}</div>
+            <div>
+              <div class="rec-mode-label">V500 RECOMMENDATION</div>
+              <div class="rec-mode-name" style="color:${node.color}">${node.mode}</div>
+            </div>
+          </div>
+          <div class="rec-body">
+            <div>
+              <div class="rec-section-label">Clinical Rationale</div>
+              <div class="rec-rationale">${node.rationale}</div>
+            </div>
+            <div>
+              <div class="rec-section-label">Suggested V500 Settings</div>
+              <div class="rec-settings">
+                ${node.settings.map(s => `
+                  <div class="rec-setting">
+                    <span class="rec-setting-key">${s.key}</span>
+                    <span class="rec-setting-val">${s.val}</span>
+                  </div>`).join('')}
+              </div>
+            </div>
+            <div class="rec-caveat">
+              <div class="rec-caveat-label">⚠ Clinical Caveat</div>
+              ${node.caveat}
+            </div>
+          </div>
+        </div>
+        <button class="rec-restart" onclick="treeRestart()">↺ Start Over</button>
+      </div>`;
+  } else {
+    content.innerHTML = `
+      <div class="tree-node active">
+        ${treeHistory.length > 1 ? `<button class="tree-back-btn" onclick="treeBack()">← Back</button>` : ''}
+        <div class="tree-question-card">
+          <div class="tree-q-step">${node.step}</div>
+          <div class="tree-q-text">${node.q}</div>
+          ${node.context ? `<div class="tree-q-context">${node.context}</div>` : ''}
+        </div>
+        <div class="tree-options">
+          ${node.options.map(opt => `
+            <div class="tree-option" onclick="renderTreeNode('${opt.next}')">
+              <span class="opt-icon">${opt.icon}</span>
+              <div class="opt-text">
+                <div class="opt-label">${opt.label}</div>
+                ${opt.sub ? `<div class="opt-sub">${opt.sub}</div>` : ''}
+              </div>
+              <span class="opt-arrow">›</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+}
+
+function treeBack() {
+  if (treeHistory.length <= 1) return;
+  treeHistory.pop();
+  const prev = treeHistory[treeHistory.length - 1];
+  treeHistory.pop();
+  renderTreeNode(prev);
+}
+
+function treeRestart() {
+  treeHistory = [];
+  renderTreeNode('start');
+}
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+renderTreeNode('start');
+</script>
+<script id="script-checklist">
+
+  let currentMode = 'novice';
+  const domainCounts = { d1: 5, d2: 5, d3: 5, d4: 6, d5: 5, d6: 5 };
+
+  function cl_setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === mode);
+    });
+    document.querySelectorAll('.novice-panel').forEach(p => {
+      p.classList.toggle('show', mode === 'novice');
+    });
+    document.querySelectorAll('.expert-panel').forEach(p => {
+      p.classList.toggle('show', mode === 'expert');
+    });
+  }
+
+  function cl_toggleDomain(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  function cl_toggleCheck(el) {
+    const item = el.closest('.check-item');
+    item.classList.toggle('checked');
+    cl_updateProgress();
+  }
+
+  function cl_updateProgress() {
+    const all = document.querySelectorAll('.check-item');
+    const done = document.querySelectorAll('.check-item.checked');
+    const total = all.length;
+    const completed = done.length;
+
+    document.getElementById('progressFill').style.width = total ? (completed / total * 100) + '%' : '0%';
+    document.getElementById('progressCount').textContent = completed + ' / ' + total;
+
+    // Per domain
+    Object.keys(domainCounts).forEach(domain => {
+      const domainItems = document.querySelectorAll(`.check-item[data-domain="${domain}"]`);
+      const domainDone = document.querySelectorAll(`.check-item[data-domain="${domain}"].checked`);
+      const el = document.getElementById('prog-' + domain);
+      if (el) el.textContent = domainDone.length + ' / ' + domainItems.length;
+
+      // Nav pill completion
+      const navPills = document.querySelectorAll('.domain-pill');
+      const idx = Object.keys(domainCounts).indexOf(domain);
+      if (navPills[idx]) {
+        navPills[idx].classList.toggle('completed', domainDone.length === domainItems.length && domainItems.length > 0);
+      }
+    });
+  }
+
+  function cl_resetAll() {
+    document.querySelectorAll('.check-item').forEach(i => i.classList.remove('checked'));
+    document.getElementById('completionBanner').classList.remove('show');
+    cl_updateProgress();
+  }
+
+  function cl_markComplete() {
+    const all = document.querySelectorAll('.check-item');
+    const done = document.querySelectorAll('.check-item.checked');
+    if (done.length === all.length) {
+      document.getElementById('completionBanner').classList.add('show');
+      document.getElementById('completionBanner').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      const remaining = all.length - done.length;
+      alert(remaining + ' item(s) not yet reviewed. Complete all items or ensure skipped items are intentional before closing the assessment.');
+    }
+  }
+
+  // Smooth scroll for nav
+  document.querySelectorAll('.domain-pill').forEach(pill => {
+    pill.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(pill.getAttribute('href'));
+      if (target) {
+        // Expand if collapsed
+        target.classList.remove('collapsed');
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // Init
+  cl_updateProgress();
+  cl_setMode('novice');
+
+</script>
+
+
+</body>
+</html>
